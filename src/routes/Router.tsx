@@ -1,10 +1,11 @@
-import React from 'react';
+import React from 'react'; 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './Landing';
-import Dashboard from './Dashboard';
+import UserDashboard from './UserDashboard';
 import Admin from './Admin';
 import Preview from './Preview';
 import SignIn from './Auth';
+import Project from '../components/Projects';
 import Signup from './signin'  // Import your SignIn component here
 
 export default function Router() {
@@ -13,7 +14,8 @@ export default function Router() {
       <Route path="/" element={<Landing />} />
       <Route path="/signin" element={<SignIn />} />  {/* New SignIn route */}
       <Route path="/signup" element={<SignIn />} />  {/* New SignIn route */}
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/project" element={<Project />} />
+      <Route path="/userdashboard" element={<UserDashboard />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/preview/:id" element={<Preview />} />
       <Route path="*" element={<Navigate to="/" replace />} />

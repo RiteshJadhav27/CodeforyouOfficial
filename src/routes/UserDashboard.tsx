@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import logo from '../assets/logo.png';
 import { Link } from "react-router-dom";
 import {
@@ -12,7 +12,9 @@ import {
   FaPhone,
   FaWhatsapp,
   FaClock,
-  FaUserCircle
+  FaUserCircle,
+  FaEdit,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { Globe, Users, Laptop, Code } from "lucide-react";
 
@@ -97,22 +99,42 @@ const featuredProjects = [
   },
 ];
 
-
-
 const Landing: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [user, setUser] = useState({ name: "", email: "" });
+  // Replace these with actual auth and user data fetching logic
+  const [loggedIn, setLoggedIn] = useState(true);
+  const [username, setUsername] = useState("JohnDoe");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setUser({ name: "John Doe", email: "john@example.com" });
+  // Profile info state for edit form
+  const [profileInfo, setProfileInfo] = useState({
+    username: 'JohnDoe',
+    email: 'john.doe@example.com',
+    phone: '+91 12345 67890',
+    // Add other fields as needed
+  });
+
+  // Handlers
+  const toggleProfile = () => setProfileOpen(!profileOpen);
+  const toggleEditMode = () => setEditMode(!editMode);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProfileInfo(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser({ name: "", email: "" });
-    setShowProfile(false);
+    // Implement logout clear session/auth
+    setLoggedIn(false);
+    setProfileOpen(false);
+  };
+
+  const handleSaveProfile = () => {
+    // Save profileInfo to backend or local state here
+    setUsername(profileInfo.username);
+    setEditMode(false);
   };
 
   return (
@@ -136,51 +158,95 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          {/* Nav links & profile */}
           <nav className="flex items-center gap-4">
-            <Link to="/project" className="text-gray-700 hover:text-black font-medium">
-              Projects
-            </Link>
-
-            {!isLoggedIn ? (
+            <Link to="/projects" className="text-gray-700 hover:text-black font-medium">Projects</Link>
+            {!loggedIn ? (
               <>
                 <Link to="/signin" className="text-gray-700 hover:text-black font-medium">Sign in</Link>
                 <Link to="/signup" className="text-gray-700 hover:text-black font-medium">Sign up</Link>
               </>
             ) : (
               <div className="relative">
-                <button
-                  onClick={() => setShowProfile(!showProfile)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-black font-medium focus:outline-none"
-                  aria-label="Toggle Profile Menu"
-                >
+                <button onClick={toggleProfile} className="flex items-center gap-2 text-gray-700 hover:text-black font-medium focus:outline-none">
                   <FaUserCircle size={28} />
-                  <span>Welcome, {user.name}</span>
+                  <span>Welcome, {username}!</span>
                 </button>
 
-                {showProfile && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="p-4 text-gray-900">
-                      <h3 className="font-bold mb-2">{user.name}</h3>
-                      <p className="mb-4">{user.email}</p>
-                      <button
-                        onClick={() => alert('Profile page coming soon!')}
-                        className="w-full mb-2 rounded py-2 bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        View Profile
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full rounded py-2 bg-red-600 text-white hover:bg-red-700"
-                      >
-                        Logout
-                      </button>
-                    </div>
+                {/* Profile dropdown */}
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg text-gray-900 z-50">
+                    {!editMode ? (
+                      <div className="p-4 space-y-3">
+                        <div><strong>Username:</strong> {profileInfo.username}</div>
+                        <div><strong>Email:</strong> {profileInfo.email}</div>
+                        <div><strong>Phone:</strong> {profileInfo.phone}</div>
+                        <button
+                          onClick={toggleEditMode}
+                          className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition"
+                        >
+                          <FaEdit className="inline mr-2" /> Edit Profile
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full bg-red-600 text-white rounded py-2 hover:bg-red-700 transition"
+                        >
+                          <FaSignOutAlt className="inline mr-2" /> Logout
+                        </button>
+                      </div>
+                    ) : (
+                      <form className="p-4 space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Username</label>
+                          <input
+                            type="text"
+                            name="username"
+                            value={profileInfo.username}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Email</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={profileInfo.email}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Phone</label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={profileInfo.phone}
+                            onChange={handleInputChange}
+                            className="w-full border border-gray-300 rounded px-3 py-2"
+                          />
+                        </div>
+                        <div className="flex justify-between">
+                          <button
+                            type="button"
+                            onClick={toggleEditMode}
+                            className="bg-gray-300 rounded px-4 py-2"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSaveProfile}
+                            className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 )}
               </div>
             )}
-
             <Link
               to="/hire"
               className="ml-2 bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow"
@@ -190,6 +256,7 @@ const Landing: React.FC = () => {
           </nav>
         </div>
       </header>
+
 
       {/* Hero Section */}
       <section className="bg-gray-100 py-16">

@@ -1,4 +1,9 @@
-import React, { useState } from "react";
+'use client';
+import React, { useState } from 'react';
+import { FaSearch, FaUserCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
+
 
 // Dummy project data for illustration
 const projects = [
@@ -43,7 +48,49 @@ export default function ProjectsPage() {
   );
 
   return (
+    <div className="min-h-screen flex flex-col bg-white text-gray-800">
+      {/* Navbar */}
+      <header className="w-full bg-white shadow border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+          <div className="flex flex-col items-center gap-0">
+            <img src={logo} alt="CodeForYou logo" className="h-6 w-auto" />
+            <span className="font-bold text-xl">&lt;CodeForYou/&gt;</span>
+          </div>
+
+          <div className="flex-1 flex justify-center">
+            <div className="relative w-96 max-w-full">
+              <input
+                type="text"
+                className="w-full rounded-full border border-gray-300 bg-gray-50 px-5 py-2 pl-10 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+                placeholder="Search themes…"
+              />
+              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
+            </div>
+          </div>
+
+        <nav className="flex items-center gap-4">
+          <Link to="/" className="text-gray-700 hover:text-black font-medium">
+            Home
+          </Link>
+          <Link to="/signin" className="text-gray-700 hover:text-black font-medium">
+            Sign in
+          </Link>
+          <Link to="/signup" className="text-gray-700 hover:text-black font-medium">
+            Sign up
+          </Link>
+          <Link
+            to="/hire"
+            className="ml-2 bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow"
+          >
+            Hire us
+          </Link>
+        </nav>
+
+        
+        </div>
+      </header>
     <div className="min-h-screen bg-background text-text pb-20">
+
       {/* Page Header */}
       <section className="bg-surface border-b border-border py-12 mb-8">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -115,6 +162,7 @@ export default function ProjectsPage() {
           </div>
         )}
       </section>
+    </div>
     </div>
   );
 }
