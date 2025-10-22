@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logo from '../assets/logo.png';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
+  FaEdit,
+  FaSignOutAlt,
   FaSearch,
   FaExternalLinkAlt,
   FaInstagram,
@@ -12,11 +14,15 @@ import {
   FaPhone,
   FaWhatsapp,
   FaClock,
-  FaUserCircle,
-  FaEdit,
-  FaSignOutAlt,
+  FaUserCircle
 } from "react-icons/fa";
-import { Globe, Users, Laptop, Code } from "lucide-react";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import {app} from "../firebaseConfig";  
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+// Initialize Firestore and Auth
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 const categories = [
   {
@@ -100,41 +106,78 @@ const featuredProjects = [
 ];
 
 const Landing: React.FC = () => {
-  // Replace these with actual auth and user data fetching logic
-  const [loggedIn, setLoggedIn] = useState(true);
-  const [username, setUsername] = useState("JohnDoe");
+  const navigate = useNavigate();
+
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  // Profile info state for edit form
   const [profileInfo, setProfileInfo] = useState({
-    username: 'JohnDoe',
-    email: 'john.doe@example.com',
-    phone: '+91 12345 67890',
-    // Add other fields as needed
+    name: '',
+    email: '',
+    phone: '',
+    createdAt: null as string | null,
   });
 
-  // Handlers
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setLoggedIn(true);
+        setUsername(user.displayName || '');
+
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
+          setProfileInfo({
+            name: data.name || user.displayName || '',
+            email: data.email || user.email || '',
+            phone: data.phone || '',
+            createdAt: data.createdAt ? data.createdAt.toDate().toLocaleString() : null,
+          });
+        } else {
+          setProfileInfo({
+            name: user.displayName || '',
+            email: user.email || '',
+            phone: '',
+            createdAt: null,
+          });
+        }
+      } else {
+        setLoggedIn(false);
+        setUsername('');
+        setProfileInfo({ name: '', email: '', phone: '', createdAt: null });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const toggleProfile = () => setProfileOpen(!profileOpen);
   const toggleEditMode = () => setEditMode(!editMode);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileInfo(prev => ({
+    setProfileInfo((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
 
   const handleLogout = () => {
-    // Implement logout clear session/auth
+    auth.signOut();
     setLoggedIn(false);
     setProfileOpen(false);
+    navigate("/");
   };
 
   const handleSaveProfile = () => {
-    // Save profileInfo to backend or local state here
-    setUsername(profileInfo.username);
+    setUsername(profileInfo.name);
     setEditMode(false);
+    // Optionally add code to save profileInfo back to Firestore here
   };
 
   return (
@@ -172,14 +215,14 @@ const Landing: React.FC = () => {
                   <span>Welcome, {username}!</span>
                 </button>
 
-                {/* Profile dropdown */}
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg text-gray-900 z-50">
                     {!editMode ? (
                       <div className="p-4 space-y-3">
-                        <div><strong>Username:</strong> {profileInfo.username}</div>
+                        <div><strong>Name:</strong> {profileInfo.name}</div>
                         <div><strong>Email:</strong> {profileInfo.email}</div>
                         <div><strong>Phone:</strong> {profileInfo.phone}</div>
+                        <div><strong>Member since:</strong> {profileInfo.createdAt || 'N/A'}</div>
                         <button
                           onClick={toggleEditMode}
                           className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition"
@@ -196,11 +239,11 @@ const Landing: React.FC = () => {
                     ) : (
                       <form className="p-4 space-y-3">
                         <div>
-                          <label className="block text-sm font-medium mb-1">Username</label>
+                          <label className="block text-sm font-medium mb-1">Name</label>
                           <input
                             type="text"
-                            name="username"
-                            value={profileInfo.username}
+                            name="name"
+                            value={profileInfo.name}
                             onChange={handleInputChange}
                             className="w-full border border-gray-300 rounded px-3 py-2"
                           />
@@ -247,16 +290,60 @@ const Landing: React.FC = () => {
                 )}
               </div>
             )}
-            <Link
-              to="/hire"
-              className="ml-2 bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow"
-            >
-              Hire us
-            </Link>
+                        <div className="relative ml-2">
+                          <button
+                            onClick={toggleDropdown}
+                            className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+                            aria-haspopup="true"
+                            aria-expanded={dropdownOpen}
+                          >
+                            Hire us
+                          </button>
+            
+                          {dropdownOpen && (
+                            <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg z-50">
+                              <li>
+                                <Link
+                                  to="/collaborate"
+                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                  onClick={() => setDropdownOpen(false)}
+                                >
+                                  Collaborate with Us
+                                </Link>
+                              </li>
+                              <li>
+                                <Link
+                                  to="/request-project"
+                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                  onClick={() => setDropdownOpen(false)}
+                                >
+                                  Request for Project
+                                </Link>
+                              </li>
+                              <li>
+                                <Link
+                                  to="/hire"
+                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                  onClick={() => setDropdownOpen(false)}
+                                >
+                                  Hire Us
+                                </Link>
+                              </li>
+                              <li>
+                                <Link
+                                  to="/consultation"
+                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                  onClick={() => setDropdownOpen(false)}
+                                >
+                                  Consultation
+                                </Link>
+                              </li>
+                            </ul>
+                          )}
+                        </div>
           </nav>
         </div>
       </header>
-
 
       {/* Hero Section */}
       <section className="bg-gray-100 py-16">
@@ -318,122 +405,114 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-      
-      {/* --- continue with cleaned code here --- */}
-      {/*All Categories*/}
       {/* All Categories */}
-<section className="bg-background py-16">
-  <div className="max-w-7xl mx-auto px-4">
-    <h2 className="text-3xl font-bold text-center text-text mb-12">
-      Explore Categories
-    </h2>
+      <section className="bg-background py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-text mb-12">
+            Explore Categories
+          </h2>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-      {categories.map((cat, idx) => (
-        <div
-          key={idx}
-          className="bg-surface rounded-2xl shadow-lg p-6 flex flex-col items-center hover:scale-105 transition-transform duration-300"
-        >
-          <img
-            src={cat.img}
-            alt={cat.name}
-            className="w-full h-32 object-cover rounded-lg mb-4 shadow-sm"
-          />
-          <h3 className="text-xl font-semibold text-text mb-2 text-center">
-            {cat.name}
-          </h3>
-          <p className="text-mutedText text-sm mb-4 text-center">{cat.description}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {categories.map((cat, idx) => (
+              <div
+                key={idx}
+                className="bg-surface rounded-2xl shadow-lg p-6 flex flex-col items-center hover:scale-105 transition-transform duration-300"
+              >
+                <img
+                  src={cat.img}
+                  alt={cat.name}
+                  className="w-full h-32 object-cover rounded-lg mb-4 shadow-sm"
+                />
+                <h3 className="text-xl font-semibold text-text mb-2 text-center">
+                  {cat.name}
+                </h3>
+                <p className="text-mutedText text-sm mb-4 text-center">{cat.description}</p>
 
-          <div className="flex space-x-2 mb-4">
-            <span className="px-3 py-1 rounded-full bg-accent text-text font-medium text-xs">
-              {cat.badge}
-            </span>
+                <div className="flex space-x-2 mb-4">
+                  <span className="px-3 py-1 rounded-full bg-accent text-text font-medium text-xs">
+                    {cat.badge}
+                  </span>
+                </div>
+
+                <div className="flex gap-4">
+                  <a
+                    href={cat.linkNew}
+                    className="text-text hover:text-accent font-medium text-sm transition"
+                  >
+                    Newest
+                  </a>
+                  <a
+                    href={cat.linkBest}
+                    className="text-text hover:text-accent font-medium text-sm transition"
+                  >
+                    Bestsellers
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="flex gap-4">
-            <a
-              href={cat.linkNew}
-              className="text-text hover:text-accent font-medium text-sm transition"
-            >
-              Newest
-            </a>
-            <a
-              href={cat.linkBest}
-              className="text-text hover:text-accent font-medium text-sm transition"
-            >
-              Bestsellers
-            </a>
+          <div className="flex justify-center mt-12 ">
+            <button className="bg-text text-background px-8 py-3 rounded-full font-semibold transition">
+              View all categories
+            </button>
           </div>
         </div>
-      ))}
-    </div>
+      </section>
 
-    <div className="flex justify-center mt-12 ">
-      <button className="bg-text text-background px-8 py-3 rounded-full font-semibold transition">
-        View all categories
-      </button>
-    </div>
-  </div>
-</section>
-
-{/* 🏗️ Projects */}
-<section
-  id="projects"
-  className="py-20 px-4 md:px-10 bg-brandLight dark:bg-dark"
->
-  <h3 className="text-4xl font-bold text-center mb-12 text-dark dark:text-brandLight">
-    <span className="bg-gradient-to-r from-accent via-highlight to-accent bg-clip-text">
-      Featured Projects
-    </span>
-  </h3>
-
-  <div className="grid md:grid-cols-3 gap-8">
-    {featuredProjects.map((proj) => (
-      <div
-        key={proj.id}
-        className="group rounded-3xl overflow-hidden shadow-lg bg-white dark:bg-gray-200 border border-gray-200 dark:border-gray-700 hover:shadow-2xl hover:scale-105 transition-transform duration-300 relative"
+      {/* Featured Projects */}
+      <section
+        id="projects"
+        className="py-20 px-4 md:px-10 bg-brandLight dark:bg-dark"
       >
-        {/* Project Image */}
-        <div className="relative">
-          <img
-            src={proj.img}
-            alt={`${proj.name} screenshot`}
-            className="w-full h-56 object-cover object-center"
-          />
-          {/* Badge */}
-          <span className="absolute top-4 left-4 bg-gradient-to-r from-accent to-highlight text-black text-xs uppercase font-semibold px-3 py-2 rounded-full shadow">
-            {proj.badge}
+        <h3 className="text-4xl font-bold text-center mb-12 text-dark dark:text-brandLight">
+          <span className="bg-gradient-to-r from-accent via-highlight to-accent bg-clip-text">
+            Featured Projects
           </span>
-          {/* Category */}
-          <span className="absolute top-4 right-4 bg-dark/80 text-black text-xs px-2 py-1 rounded-full">
-            {proj.category}
-          </span>
-          {/* External Link */}
-          <a
-            href={proj.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute bottom-4 right-4 bg-accent hover:bg-dark text-black rounded-full p-2 shadow transition"
-          >
-            <FaExternalLinkAlt size={18} />
-          </a>
-        </div>
+        </h3>
 
-        {/* Project Details */}
-        <div className="p-6">
-          <h4 className="text-xl font-semibold mb-2 text-dark dark:text-black  transition">
-            {proj.name}
-          </h4>
-          <p className="text-sm text-black-800 dark:text-black-300">
-            {proj.desc}
-          </p>
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
+        <div className="grid md:grid-cols-3 gap-8">
+          {featuredProjects.map((proj) => (
+            <div
+              key={proj.id}
+              className="group rounded-3xl overflow-hidden shadow-lg bg-white dark:bg-gray-200 border border-gray-200 dark:border-gray-700 hover:shadow-2xl hover:scale-105 transition-transform duration-300 relative"
+            >
+              <div className="relative">
+                <img
+                  src={proj.img}
+                  alt={`${proj.name} screenshot`}
+                  className="w-full h-56 object-cover object-center"
+                />
+                <span className="absolute top-4 left-4 bg-gradient-to-r from-accent to-highlight text-black text-xs uppercase font-semibold px-3 py-2 rounded-full shadow">
+                  {proj.badge}
+                </span>
+                <span className="absolute top-4 right-4 bg-dark/80 text-black text-xs px-2 py-1 rounded-full">
+                  {proj.category}
+                </span>
+                <a
+                  href={proj.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-4 right-4 bg-accent hover:bg-dark text-black rounded-full p-2 shadow transition"
+                >
+                  <FaExternalLinkAlt size={18} />
+                </a>
+              </div>
 
-      {/* 💬 About Section */}
+              <div className="p-6">
+                <h4 className="text-xl font-semibold mb-2 text-dark dark:text-black  transition">
+                  {proj.name}
+                </h4>
+                <p className="text-sm text-black-800 dark:text-black-300">
+                  {proj.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* About Section */}
       <section id="about" className="py-16 px-6 md:px-12 bg-brandLight dark:bg-black">
         <h3 className="text-3xl font-bold text-center mb-8 text-white dark:text-brandLight">Why Choose Us?</h3>
         <div className="max-w-4xl mx-auto text-center text-white dark:text-brandLight leading-relaxed">
@@ -445,110 +524,110 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-    {/* 📞 Contact Section */}
-<section className="py-20 px-4 md:px-10 bg-white text-gray-800">
-  <h2 className="text-3xl font-bold text-center mb-12 text-dark dark:text-brandLight">
-    Contact Us
-  </h2>
+      {/* Contact Section */}
+      <section className="py-20 px-4 md:px-10 bg-white text-gray-800">
+        <h2 className="text-3xl font-bold text-center mb-12 text-dark dark:text-brandLight">
+          Contact Us
+        </h2>
 
-  <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
-    {/* Form Card */}
-    <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl">
-      <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Get In Touch</h3>
-      <form className="space-y-5">
-        <div>
-          <label className="block text-sm mb-1 text-black dark:text-brandLight">Name</label>
-          <input
-            className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 text-black dark:text-brandLight">Email</label>
-          <input
-            type="email"
-            className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 text-black dark:text-brandLight">Phone</label>
-          <input
-            type="tel"
-            className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 text-black dark:text-brandLight">Project Details</label>
-          <textarea
-            rows={4}
-            className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-black hover:bg-dark-500 text-white font-semibold py-2 rounded-full "
-        >
-          Send Message
-        </button>
-      </form>
-    </div>
-
-    {/* Info Card */}
-    <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl border border-border ">
-      <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Contact Information</h3>
-      <div className="space-y-6 text-black dark:text-brandLight">
-        <div className="flex items-start space-x-3">
-          <FaMapMarkerAlt className="text-black text-2xl mt-1" />
-          <div>
-            <div className="font-semibold">Address</div>
-            <div className="text-sm">CodeForYou, Nashik, Maharashtra 420012</div>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+          {/* Form Card */}
+          <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl">
+            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Get In Touch</h3>
+            <form className="space-y-5">
+              <div>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">Name</label>
+                <input
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">Email</label>
+                <input
+                  type="email"
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">Phone</label>
+                <input
+                  type="tel"
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">Project Details</label>
+                <textarea
+                  rows={4}
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-black hover:bg-dark-500 text-white font-semibold py-2 rounded-full "
+              >
+                Send Message
+              </button>
+            </form>
           </div>
-        </div>
 
-        <div className="flex items-start space-x-3">
-          <FaEnvelope className="text-black text-2xl mt-1" />
-          <div>
-            <div className="font-semibold">Email</div>
-            <div className="text-sm">contact@codeforyou.com</div>
-          </div>
-        </div>
+          {/* Info Card */}
+          <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl border border-border ">
+            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Contact Information</h3>
+            <div className="space-y-6 text-black dark:text-brandLight">
+              <div className="flex items-start space-x-3">
+                <FaMapMarkerAlt className="text-black text-2xl mt-1" />
+                <div>
+                  <div className="font-semibold">Address</div>
+                  <div className="text-sm">CodeForYou, Nashik, Maharashtra 420012</div>
+                </div>
+              </div>
 
-        <div className="flex items-start space-x-3">
-          <FaPhone className="text-black text-2xl mt-1" />
-          <div>
-            <div className="font-semibold">Phone</div>
-            <div className="text-sm">+91 90758 63917</div>
-          </div>
-        </div>
+              <div className="flex items-start space-x-3">
+                <FaEnvelope className="text-black text-2xl mt-1" />
+                <div>
+                  <div className="font-semibold">Email</div>
+                  <div className="text-sm">contact@codeforyou.com</div>
+                </div>
+              </div>
 
-        <div className="flex items-start space-x-3">
-          <FaWhatsapp className="text-black text-2xl mt-1" />
-          <div>
-            <div className="font-semibold">WhatsApp</div>
-            <div className="text-sm">+91 90758 63917</div>
-            <button className="mt-2 px-3 py-1 bg-black text-white rounded-full hover:bg-dark transition text-xs font-semibold">
-              Message Us
-            </button>
-          </div>
-        </div>
+              <div className="flex items-start space-x-3">
+                <FaPhone className="text-black text-2xl mt-1" />
+                <div>
+                  <div className="font-semibold">Phone</div>
+                  <div className="text-sm">+91 90758 63917</div>
+                </div>
+              </div>
 
-        <div className="flex items-start space-x-3">
-          <FaClock className="text-black text-2xl mt-1" />
-          <div>
-            <div className="font-semibold">Working Hours</div>
-            <div className="text-sm">
-              Mon - Fri: 9:00 AM - 6:00 PM<br />
-              Saturday: 10:00 AM - 4:00 PM<br />
-              Sunday: Closed
+              <div className="flex items-start space-x-3">
+                <FaWhatsapp className="text-black text-2xl mt-1" />
+                <div>
+                  <div className="font-semibold">WhatsApp</div>
+                  <div className="text-sm">+91 90758 63917</div>
+                  <button className="mt-2 px-3 py-1 bg-black text-white rounded-full hover:bg-dark transition text-xs font-semibold">
+                    Message Us
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <FaClock className="text-black text-2xl mt-1" />
+                <div>
+                  <div className="font-semibold">Working Hours</div>
+                  <div className="text-sm">
+                    Mon - Fri: 9:00 AM - 6:00 PM<br />
+                    Saturday: 10:00 AM - 4:00 PM<br />
+                    Sunday: Closed
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
-      {/* 🔻 Footer */}
-     <footer className="bg-black text-white pt-12 pb-6 border-t border-border">
+      {/* Footer */}
+      <footer className="bg-black text-white pt-12 pb-6 border-t border-border">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
             <h4 className="font-bold text-lg mb-2">CodeForYou</h4>
@@ -592,9 +671,6 @@ const Landing: React.FC = () => {
           © 2025 CodeForYou. All rights reserved.
         </div>
       </footer>
-
-      
-
     </div>
   );
 };

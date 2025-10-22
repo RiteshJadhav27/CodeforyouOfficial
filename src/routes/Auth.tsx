@@ -5,6 +5,7 @@ import logow from '../assets/logow.png';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
+import Swal from 'sweetalert2';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,7 +21,7 @@ export default function AuthPage() {
     if (!isLogin) {
       const passwordConfirm = (form.elements.namedItem("confirm_password") as HTMLInputElement).value;
       if (password !== passwordConfirm) {
-        alert("Passwords do not match");
+        Swal.fire({ icon: 'error', title: 'Oops...', text: 'Passwords do not match!' });
         return;
       }
     }
@@ -45,9 +46,9 @@ export default function AuthPage() {
   
       // Redirect on success
       navigate('/userdashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth error:", error);
-      alert("Error: " + (error as Error).message);
+      Swal.fire({ icon: 'error', title: 'Authentication Error', text: error.message });
     }
   };
 

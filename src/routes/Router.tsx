@@ -7,6 +7,7 @@ import Preview from './Preview';
 import SignIn from './Auth';
 import Project from '../components/Projects';
 import Signup from './signin'  // Import your SignIn component here
+import Hire from '../components/hire';
 
 export default function Router() {
   return (
@@ -19,6 +20,7 @@ export default function Router() {
       <Route path="/admin" element={<Admin />} />
       <Route path="/preview/:id" element={<Preview />} />
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/hire" element={<Hire />} />
     </Routes>
   );
 }
