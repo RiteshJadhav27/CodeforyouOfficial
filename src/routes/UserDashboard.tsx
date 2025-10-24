@@ -17,10 +17,9 @@ import {
   FaUserCircle
 } from "react-icons/fa";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import {app} from "../firebaseConfig";  
+import { app } from "../firebaseConfig";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-// Initialize Firestore and Auth
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -113,6 +112,7 @@ const Landing: React.FC = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
+
   const [profileInfo, setProfileInfo] = useState({
     name: '',
     email: '',
@@ -149,19 +149,17 @@ const Landing: React.FC = () => {
         setLoggedIn(false);
         setUsername('');
         setProfileInfo({ name: '', email: '', phone: '', createdAt: null });
+        navigate("/signin");
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const toggleProfile = () => setProfileOpen(!profileOpen);
   const toggleEditMode = () => setEditMode(!editMode);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileInfo((prev) => ({
+    setProfileInfo(prev => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -174,23 +172,27 @@ const Landing: React.FC = () => {
     navigate("/");
   };
 
+  const handleHireClick = () => {
+  navigate("/hire");
+};
+
   const handleSaveProfile = () => {
     setUsername(profileInfo.name);
     setEditMode(false);
-    // Optionally add code to save profileInfo back to Firestore here
+    // Optionally add Firestore update logic here
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800">
       {/* Navbar */}
       <header className="w-full bg-white shadow border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between px-6 py-3">
           <div className="flex flex-col items-center gap-0">
             <img src={logo} alt="CodeForYou logo" className="h-6 w-auto" />
             <span className="font-bold text-xl">&lt;CodeForYou/&gt;</span>
           </div>
 
-          <div className="flex-1 flex justify-center">
+          <div className="hidden md:flex flex-1 justify-center">
             <div className="relative w-96 max-w-full">
               <input
                 type="text"
@@ -201,43 +203,49 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          <nav className="flex items-center gap-4">
-            <Link to="/projects" className="text-gray-700 hover:text-black font-medium">Projects</Link>
+          <nav className="flex items-center gap-4 mt-3 md:mt-0">
+            <Link to="/project" className="text-gray-700 hover:text-black font-medium">
+              Projects
+            </Link>
             {!loggedIn ? (
               <>
-                <Link to="/signin" className="text-gray-700 hover:text-black font-medium">Sign in</Link>
-                <Link to="/signup" className="text-gray-700 hover:text-black font-medium">Sign up</Link>
+                <Link to="/signin" className="text-gray-700 hover:text-black font-medium">
+                  Sign in
+                </Link>
+                <Link to="/signup" className="text-gray-700 hover:text-black font-medium">
+                  Sign up
+                </Link>
               </>
             ) : (
               <div className="relative">
                 <button onClick={toggleProfile} className="flex items-center gap-2 text-gray-700 hover:text-black font-medium focus:outline-none">
                   <FaUserCircle size={28} />
-                  <span>Welcome, {username}!</span>
+                  <span>Welcome, {profileInfo.name}!</span>
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg text-gray-900 z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg text-gray-900 z-50 p-4 space-y-3">
                     {!editMode ? (
-                      <div className="p-4 space-y-3">
+                      <>
                         <div><strong>Name:</strong> {profileInfo.name}</div>
                         <div><strong>Email:</strong> {profileInfo.email}</div>
                         <div><strong>Phone:</strong> {profileInfo.phone}</div>
                         <div><strong>Member since:</strong> {profileInfo.createdAt || 'N/A'}</div>
                         <button
                           onClick={toggleEditMode}
-                          className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition"
+                          className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition flex items-center justify-center"
                         >
                           <FaEdit className="inline mr-2" /> Edit Profile
                         </button>
                         <button
                           onClick={handleLogout}
-                          className="w-full bg-red-600 text-white rounded py-2 hover:bg-red-700 transition"
+                          className="w-full bg-red-600 text-white rounded py-2 hover:bg-red-700 transition flex items-center justify-center"
                         >
                           <FaSignOutAlt className="inline mr-2" /> Logout
                         </button>
-                      </div>
+                      </>
                     ) : (
-                      <form className="p-4 space-y-3">
+                      <form className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium mb-1">Name</label>
                           <input
@@ -269,18 +277,10 @@ const Landing: React.FC = () => {
                           />
                         </div>
                         <div className="flex justify-between">
-                          <button
-                            type="button"
-                            onClick={toggleEditMode}
-                            className="bg-gray-300 rounded px-4 py-2"
-                          >
+                          <button type="button" onClick={toggleEditMode} className="bg-gray-300 rounded px-4 py-2">
                             Cancel
                           </button>
-                          <button
-                            type="button"
-                            onClick={handleSaveProfile}
-                            className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition"
-                          >
+                          <button type="button" onClick={handleSaveProfile} className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition">
                             Save
                           </button>
                         </div>
@@ -290,63 +290,21 @@ const Landing: React.FC = () => {
                 )}
               </div>
             )}
-                        <div className="relative ml-2">
-                          <button
-                            onClick={toggleDropdown}
-                            className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
-                            aria-haspopup="true"
-                            aria-expanded={dropdownOpen}
-                          >
-                            Hire us
-                          </button>
-            
-                          {dropdownOpen && (
-                            <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg z-50">
-                              <li>
-                                <Link
-                                  to="/collaborate"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Collaborate with Us
-                                </Link>
-                              </li>
-                              <li>
-                                <Link
-                                  to="/request-project"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Request for Project
-                                </Link>
-                              </li>
-                              <li>
-                                <Link
-                                  to="/hire"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Hire Us
-                                </Link>
-                              </li>
-                              <li>
-                                <Link
-                                  to="/consultation"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Consultation
-                                </Link>
-                              </li>
-                            </ul>
-                          )}
-                        </div>
+
+<div className="relative ml-2">
+  <button
+    onClick={handleHireClick}
+    className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+  >
+    Hire Us
+  </button>
+</div>
           </nav>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gray-100 py-16">
+          <section className="bg-gray-100 py-16">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-center gap-16">
           <div className="flex-1">
             <div className="mb-8">

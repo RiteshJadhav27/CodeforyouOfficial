@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaSearch,
   FaExternalLinkAlt,
@@ -97,12 +97,15 @@ const featuredProjects = [
 ];
 
 const Landing: React.FC = () => {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [user, setUser] = useState({ name: "", email: "" });
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const handleHireClick = () => {
+  navigate("/hire");
+};
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -166,58 +169,14 @@ const Landing: React.FC = () => {
           {/* Profile dropdown within nav */}
         </div>
       )}
-
-                        <div className="relative ml-2">
-                          <button
-                            onClick={toggleDropdown}
-                            className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
-                            aria-haspopup="true"
-                            aria-expanded={dropdownOpen}
-                          >
-                            Hire us
-                          </button>
-            
-                          {dropdownOpen && (
-                            <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg z-50">
-                              <li>
-                                <Link
-                                  to="/hire"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Collaborate with Us
-                                </Link>
-                              </li>
-                              <li>
-                                <Link
-                                  to="/hire"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Request for Project
-                                </Link>
-                              </li>
-                              <li>
-                                <Link
-                                  to="/hire"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Hire Us
-                                </Link>
-                              </li>
-                              <li>
-                                <Link
-                                  to="/hire"
-                                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                  onClick={() => setDropdownOpen(false)}
-                                >
-                                  Consultation
-                                </Link>
-                              </li>
-                            </ul>
-                          )}
-                        </div>
+        <div className="relative ml-2">
+  <button
+    onClick={handleHireClick}
+    className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+  >
+    Hire Us
+  </button>
+</div>
     </nav>
   </div>
 </header>
