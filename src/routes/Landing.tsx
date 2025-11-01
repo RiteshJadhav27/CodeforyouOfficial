@@ -13,6 +13,7 @@ import {
   FaWhatsapp,
   FaClock,
   FaUserCircle,
+  FaGithub,
 } from "react-icons/fa";
 
 const categories = [
@@ -445,6 +446,12 @@ const Landing: React.FC = () => {
               </a>
               <a href="#" aria-label="YouTube">
                 <FaYoutube />
+              </a>
+              <a href="#" aria-label="YouTube">
+                <FaGithub />
+              </a>
+              <a href="/adminAuth" aria-label="Admin Login">
+                <FaUserCircle />
               </a>
             </div>
           </div>

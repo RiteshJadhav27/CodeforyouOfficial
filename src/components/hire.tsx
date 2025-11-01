@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import { FaUserCircle, FaSignOutAlt, FaEdit } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 // Firebase setup
 const auth = getAuth(app);
@@ -55,6 +55,7 @@ const HirePage = () => {
     message: "",
     company: "",
     timeline: "",
+    status: "pending",
   });
 
   const currentOption = hireOptions.find((opt) => opt.id === selected);
@@ -68,6 +69,7 @@ const HirePage = () => {
         if (userSnap.exists()) {
           const data = userSnap.data();
           setUser({
+            uid: loggedUser.uid,
             name: data.name || loggedUser.displayName || "User",
             email: data.email || loggedUser.email,
           });
@@ -77,7 +79,11 @@ const HirePage = () => {
             email: data.email || loggedUser.email || "",
           }));
         } else {
-          setUser({ name: loggedUser.displayName || "User", email: loggedUser.email });
+          setUser({
+            uid: loggedUser.uid,
+            name: loggedUser.displayName || "User",
+            email: loggedUser.email,
+          });
           setFormData((prev) => ({
             ...prev,
             name: loggedUser.displayName || "",
@@ -94,6 +100,7 @@ const HirePage = () => {
           message: "",
           company: "",
           timeline: "",
+          status: "pending",
         });
       }
     });
@@ -122,42 +129,66 @@ const HirePage = () => {
     }));
   };
 
-  // Form submit handler (mock)
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form submit handler with Firebase and SweetAlert
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", { type: selected, ...formData });
     setSubmitted(true);
-    // Reset form except name/email from user session
-    setFormData((prev) => ({
-      ...prev,
-      subject: "",
-      message: "",
-      company: "",
-      timeline: "",
-      mobile: "",
-    }));
-    setTimeout(() => setSubmitted(false), 4000);
-  };
 
-  // Dynamic placeholder for message based on selection
-  const getPlaceholder = () => {
-    switch (selected) {
-      case "collaborate":
-        return "Tell us about your collaboration idea or proposal...";
-      case "requestProject":
-        return "Describe your project requirements, goals, and desired features...";
-      case "hireUs":
-        return "Mention what kind of developers or team you need, and for how long...";
-      case "consultation":
-        return "Describe the topic or issue you'd like to discuss during the consultation...";
-      default:
-        return "Write your message...";
+    try {
+      // Save to Firestore
+      await addDoc(collection(db, "hireRequests"), {
+        userId: user?.uid || null,
+        type: selected,
+        name: formData.name,
+        email: formData.email,
+        mobile: formData.mobile,
+        subject: formData.subject,
+        message: formData.message,
+        company: formData.company || "",
+        timeline: formData.timeline || "",
+        createdAt: serverTimestamp(),
+        status: "pending",
+      });
+
+      // Success alert with SweetAlert2
+      Swal.fire({
+        icon: "success",
+        title: "Request Submitted Successfully!",
+        text: "Thank you for contacting us. Our team will get back to you within 48 hours.",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "OK",
+      });
+
+      // Reset form
+      setFormData({
+        name: user?.name || "",
+        email: user?.email || "",
+        mobile: "",
+        subject: "",
+        message: "",
+        company: "",
+        timeline: "",
+        status: "pending",
+      });
+
+      setTimeout(() => setSubmitted(false), 2000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      
+      // Error alert
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: "Something went wrong. Please try again later.",
+        confirmButtonColor: "#000000",
+      });
+      
+      setSubmitted(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
-      
       {/* HEADER */}
       <header className="w-full bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
@@ -188,8 +219,12 @@ const HirePage = () => {
                   <div className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-sm z-50">
                     {!editMode ? (
                       <>
-                        <div className="mb-2"><strong>Name:</strong> {user.name}</div>
-                        <div className="mb-2"><strong>Email:</strong> {user.email}</div>
+                        <div className="mb-2">
+                          <strong>Name:</strong> {user.name}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Email:</strong> {user.email}
+                        </div>
                         <div className="flex flex-col gap-2 mt-3">
                           <button
                             onClick={() => setEditMode(true)}
@@ -242,16 +277,10 @@ const HirePage = () => {
               </div>
             ) : (
               <>
-                <Link
-                  to="/signin"
-                  className="text-gray-700 hover:text-black font-medium"
-                >
+                <Link to="/signin" className="text-gray-700 hover:text-black font-medium">
                   Sign in
                 </Link>
-                <Link
-                  to="/signup"
-                  className="text-gray-700 hover:text-black font-medium"
-                >
+                <Link to="/signup" className="text-gray-700 hover:text-black font-medium">
                   Sign up
                 </Link>
               </>
@@ -260,15 +289,12 @@ const HirePage = () => {
         </div>
       </header>
 
-            
       {/* Page Header */}
-      <section className="bg-surface border-b border-border py-12 text-center">
+      <section className="bg-white border-b border-gray-200 py-12 text-center">
         <div className="max-w-4xl mx-auto px-6">
-          <h1 className="text-4xl font-extrabold mb-2 text-text">
-            Hire Us
-          </h1>
-          <p className="text-mutedText text-lg">
-            Discover innovative web projects built by the CodeForYou team. Explore, learn, and get inspired!
+          <h1 className="text-4xl font-extrabold mb-2 text-gray-900">Hire Us</h1>
+          <p className="text-gray-600 text-lg">
+            Partner with CodeForYou for innovative web development solutions tailored to your needs.
           </p>
         </div>
       </section>
@@ -315,9 +341,7 @@ const HirePage = () => {
                 />
               </div>
               <div>
-                <label className="block mb-1 font-semibold text-sm">
-                  Email
-                </label>
+                <label className="block mb-1 font-semibold text-sm">Email</label>
                 <input
                   type="email"
                   name="email"
@@ -344,9 +368,7 @@ const HirePage = () => {
 
             {(selected === "hireUs" || selected === "collaborate") && (
               <div>
-                <label className="block mb-1 font-semibold text-sm">
-                  Company / Organization
-                </label>
+                <label className="block mb-1 font-semibold text-sm">Company / Organization</label>
                 <input
                   type="text"
                   name="company"
@@ -407,45 +429,14 @@ const HirePage = () => {
 
             <button
               type="submit"
-              className="w-full bg-black text-white py-3 rounded-full font-semibold hover:bg-gray-800 transition"
+              disabled={submitted}
+              className="w-full bg-black text-white py-3 rounded-full font-semibold hover:bg-gray-800 transition disabled:opacity-50"
             >
-              {submitted ? "Submitted ✅" : "Submit Request"}
+              {submitted ? "Submitting..." : "Submit Request"}
             </button>
           </form>
         </section>
       </main>
-            {/* Why Hire Us Section */}
-<section className="max-w-7xl mx-auto px-6 py-12 bg-white rounded-lg shadow mb-8">
-  <h2 className="text-3xl font-bold mb-6 text-center text-gray-900">
-    Why Hire Us?
-  </h2>
-  <p className="text-center text-gray-700 max-w-3xl mx-auto mb-10">
-    At CodeForYou, we deliver top-quality development with deep expertise in React, Tailwind CSS, and AI-powered projects.
-    Our dedicated team is committed to crafting scalable, innovative, and customized solutions that elevate your business.
-  </p>
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto text-center">
-    <div>
-      <span className="block text-4xl font-extrabold mb-2 text-accent">🔥</span>
-      <h3 className="font-semibold mb-1">Expert Developers</h3>
-      <p className="text-gray-600 text-sm">Skilled in modern web tech and AI.</p>
-    </div>
-    <div>
-      <span className="block text-4xl font-extrabold mb-2 text-accent">⚡</span>
-      <h3 className="font-semibold mb-1">Fast Delivery</h3>
-      <p className="text-gray-600 text-sm">Agile processes focused on deadlines.</p>
-    </div>
-    <div>
-      <span className="block text-4xl font-extrabold mb-2 text-accent">🛠️</span>
-      <h3 className="font-semibold mb-1">Custom Solutions</h3>
-      <p className="text-gray-600 text-sm">Tailored development to meet your needs.</p>
-    </div>
-    <div>
-      <span className="block text-4xl font-extrabold mb-2 text-accent">🤝</span>
-      <h3 className="font-semibold mb-1">Dedicated Support</h3>
-      <p className="text-gray-600 text-sm">Committed & collaborative client service.</p>
-    </div>
-  </div>
-</section>
 
       <footer className="border-t border-gray-200 text-center py-6 text-sm text-gray-500">
         © {new Date().getFullYear()} <span className="font-semibold">CodeForYou</span>. All rights reserved.

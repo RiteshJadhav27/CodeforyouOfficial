@@ -1,69 +1,48 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { FaSearch, FaUserCircle, FaSignOutAlt, FaEdit } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  FaSearch,
+  FaUserCircle,
+  FaSignOutAlt,
+  FaEdit,
+  FaHeart,
+  FaRegHeart,
+} from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { app } from "../firebaseConfig";
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { app } from '../firebaseConfig';
+
+import projectsData from '../data/projects.json';
 
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Dummy project data
-const projects = [
-  {
-    id: 1,
-    name: "SmartEye DR",
-    desc: "AI-based diabetic retinopathy detection system for healthcare innovation.",
-    img: "https://images.unsplash.com/photo-1503676382389-4809596d5290?w=400&q=80",
-    status: "Active",
-    tag: "AI/Healthcare",
-    link: "#",
-  },
-  {
-    id: 2,
-    name: "GeoGuardian Safety",
-    desc: "Tourism safety dashboard with real-time risk scoring and geofencing.",
-    img: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80",
-    status: "Completed",
-    tag: "Tourism",
-    link: "#",
-  },
-  {
-    id: 3,
-    name: "Portfolio Builder",
-    desc: "Personal website template for students, creators and freelancers.",
-    img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80",
-    status: "Active",
-    tag: "Web/Portfolio",
-    link: "#",
-  },
-];
-
 export default function ProjectsPage() {
-  const [search, setSearch] = useState("");
-  const [user, setUser] = useState<any>(null);
+  const [search, setSearch] = useState('');
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [wishlist, setWishlist] = useState<string[]>([]); // Store project IDs as strings
   const navigate = useNavigate();
+  const profileRef = useRef<HTMLDivElement>(null);
 
-  // Session persistence logic
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (loggedUser) => {
       if (loggedUser) {
-        const userDocRef = doc(db, "users", loggedUser.uid);
+        const userDocRef = doc(db, 'users', loggedUser.uid);
         const userSnap = await getDoc(userDocRef);
         if (userSnap.exists()) {
           const data = userSnap.data();
           setUser({
-            name: data.name || loggedUser.displayName || "User",
-            email: data.email || loggedUser.email,
+            name: data.name || loggedUser.displayName || 'User',
+            email: data.email || loggedUser.email || '',
           });
         } else {
           setUser({
-            name: loggedUser.displayName || "User",
-            email: loggedUser.email,
+            name: loggedUser.displayName || 'User',
+            email: loggedUser.email || '',
           });
         }
       } else {
@@ -71,40 +50,56 @@ export default function ProjectsPage() {
       }
     });
 
-    return () => unsubscribe();
+    // Close profile dropdown if clicked outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+        setEditMode(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      unsubscribe();
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleLogout = () => {
     signOut(auth);
     setUser(null);
-    navigate("/");
+    navigate('/');
   };
 
-  const filteredProjects = projects.filter(
-    project =>
-      project.name.toLowerCase().includes(search.toLowerCase()) ||
-      project.desc.toLowerCase().includes(search.toLowerCase()) ||
-      project.tag.toLowerCase().includes(search.toLowerCase())
+  const toggleWishlist = (id: string) => {
+    setWishlist((prev) =>
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+    );
+  };
+
+  const filteredProjects = projectsData.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.description.toLowerCase().includes(search.toLowerCase()) ||
+      p.category.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleHomeClick = () => {
-  if (user) {
-    navigate("/userdashboard");
-  } else {
-    navigate("/");
-  }
-};
+    if (user) navigate('/userdashboard');
+    else navigate('/');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800">
       {/* Navbar */}
       <header className="w-full bg-white shadow border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 flex-wrap">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between px-6 py-3">
           <div className="flex flex-col items-center gap-0">
             <img src={logo} alt="CodeForYou logo" className="h-6 w-auto" />
             <span className="font-bold text-xl">&lt;CodeForYou/&gt;</span>
           </div>
 
+          {/* Search */}
           <div className="flex-1 flex justify-center mt-2 md:mt-0">
             <div className="relative w-full md:w-96">
               <input
@@ -112,20 +107,21 @@ export default function ProjectsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full rounded-full border border-gray-300 bg-gray-50 px-5 py-2 pl-10 focus:ring-2 focus:ring-gray-400 focus:outline-none"
-                placeholder="Search themes…"
+                placeholder="Search projects…"
+                aria-label="Search projects"
               />
               <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
             </div>
           </div>
 
-          {/* Dynamic Navbar */}
+          {/* Navigation */}
           <nav className="flex items-center gap-4 mt-3 md:mt-0">
-           <button
-  onClick={handleHomeClick}
-  className="text-gray-700 hover:text-black font-medium"
->
-  Home
-</button>
+            <button
+              onClick={handleHomeClick}
+              className="text-gray-700 hover:text-black font-medium"
+            >
+              Home
+            </button>
 
             {!user ? (
               <>
@@ -137,10 +133,12 @@ export default function ProjectsPage() {
                 </Link>
               </>
             ) : (
-              <div className="relative">
+              <div ref={profileRef} className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center gap-2 text-gray-700 hover:text-black font-medium focus:outline-none"
+                  aria-haspopup="true"
+                  aria-expanded={profileOpen}
                 >
                   <FaUserCircle size={28} />
                   <span className="hidden md:inline">Welcome, {user.name}</span>
@@ -178,8 +176,8 @@ export default function ProjectsPage() {
                           <input
                             type="text"
                             value={user.name}
-                            onChange={() => {}}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            readOnly
+                            className="w-full border border-gray-300 rounded px-3 py-2 cursor-not-allowed bg-gray-100"
                           />
                         </div>
                         <div>
@@ -187,8 +185,8 @@ export default function ProjectsPage() {
                           <input
                             type="email"
                             value={user.email}
-                            onChange={() => {}}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            readOnly
+                            className="w-full border border-gray-300 rounded px-3 py-2 cursor-not-allowed bg-gray-100"
                           />
                         </div>
                         <div className="flex justify-between">
@@ -202,7 +200,9 @@ export default function ProjectsPage() {
                           <button
                             type="button"
                             onClick={() => setEditMode(false)}
-                            className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition"
+                            disabled
+                            className="bg-blue-600 text-white rounded px-4 py-2 opacity-50 cursor-not-allowed"
+                            title="Save currently disabled"
                           >
                             Save
                           </button>
@@ -239,24 +239,24 @@ export default function ProjectsPage() {
       {/* Projects Grid */}
       <main className="max-w-7xl mx-auto px-4 pb-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-          {filteredProjects.map(project => (
-            <div
+          {filteredProjects.map((project) => (
+            <article
               key={project.id}
               className="bg-surface rounded-2xl shadow-lg hover:shadow-2xl border border-border transition-transform hover:-translate-y-2 flex flex-col"
+              aria-label={`Project: ${project.name}`}
             >
               <img
-                src={project.img}
-                alt={project.name}
+                src={project.imageURL}
+                alt={`Screenshot of ${project.name}`}
                 className="rounded-t-2xl object-cover h-44 w-full"
+                loading="lazy"
               />
               <div className="flex-1 p-6 flex flex-col">
-                <h3 className="text-xl font-bold text-text mb-2">
-                  {project.name}
-                </h3>
+                <h3 className="text-xl font-bold text-text mb-2">{project.name}</h3>
                 <span className="inline-block px-3 py-1 rounded-full bg-accent text-text font-medium text-xs mb-3">
-                  {project.tag}
+                  {project.category}
                 </span>
-                <p className="text-mutedText mb-4 flex-1">{project.desc}</p>
+                <p className="text-mutedText mb-4 flex-1">{project.description}</p>
                 <div className="flex items-center justify-between mt-auto pt-2">
                   <span
                     className={`px-3 py-1 rounded-full font-semibold text-xs ${
@@ -267,23 +267,52 @@ export default function ProjectsPage() {
                   >
                     {project.status}
                   </span>
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-text text-background px-4 py-1 rounded-full font-bold hover:bg-mutedText transition text-sm"
-                  >
-                    View
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <button
+                      aria-label={
+                        wishlist.includes(project.id)
+                          ? `Remove ${project.name} from wishlist`
+                          : `Add ${project.name} to wishlist`
+                      }
+                      onClick={() => toggleWishlist(project.id)}
+                      className="text-red-500 hover:text-red-600 transition"
+                    >
+                      {wishlist.includes(project.id) ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                    {project.liveDemoURL && (
+                      <a
+                        href={project.liveDemoURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-text text-background px-4 py-1 rounded-full font-bold hover:bg-mutedText transition text-sm"
+                      >
+                        Live Demo
+                      </a>
+                    )}
+                    {project.repoURL && (
+                      <a
+                        href={project.repoURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-gray-700 text-white px-4 py-1 rounded-full font-bold hover:bg-gray-900 transition text-sm"
+                      >
+                        Source Code
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
         {/* Empty State */}
         {filteredProjects.length === 0 && (
-          <div className="text-center text-mutedText py-24 text-lg">
+          <div
+            className="text-center text-mutedText py-24 text-lg"
+            role="alert"
+            aria-live="polite"
+          >
             No projects found. Try searching for something else!
           </div>
         )}

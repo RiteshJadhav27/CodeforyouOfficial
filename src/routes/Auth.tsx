@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import logow from "../assets/logow.png";
 import Swal from "sweetalert2";
+
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -12,7 +13,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { db, app } from "../firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const auth = getAuth(app);
 
@@ -20,27 +21,31 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
-  // Redirect if already authenticated (persistent session)
+  // Keep user on dashboard if session is active
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) navigate("/userdashboard");
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        navigate("/userdashboard");
+      }
     });
     return () => unsubscribe();
   }, [navigate]);
 
+  // Handle login/register
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement)
-      .value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     if (!isLogin) {
+      // REGISTER
       const confirmPassword = (
         form.elements.namedItem("confirm_password") as HTMLInputElement
       ).value;
       const name = (form.elements.namedItem("name") as HTMLInputElement).value;
       const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
+
       if (password !== confirmPassword) {
         Swal.fire("Error", "Passwords do not match!", "error");
         return;
@@ -48,27 +53,29 @@ export default function AuthPage() {
 
       try {
         await setPersistence(auth, browserSessionPersistence);
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Only create user with role "user"
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email,
           name,
           phone,
+          role: "user",
           createdAt: new Date(),
         });
+
         Swal.fire("Success", "Account successfully created!", "success");
         navigate("/userdashboard");
       } catch (error: any) {
         Swal.fire("Error", error.message, "error");
       }
     } else {
+      // LOGIN
       try {
         await setPersistence(auth, browserSessionPersistence);
         await signInWithEmailAndPassword(auth, email, password);
-        Swal.fire("Welcome", "Login successful!", "success");
+
+        Swal.fire("Welcome!", "Login successful!", "success");
         navigate("/userdashboard");
       } catch (error: any) {
         Swal.fire("Login failed", error.message, "error");
@@ -79,12 +86,14 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background text-text">
       {/* Left Visual Illustration */}
-            <div
+      <div
         className="hidden md:flex md:w-1/2 flex-col items-center justify-center bg-cover bg-center"
         style={{
-          backgroundImage: `url('${isLogin ?
-            "https://images.unsplash.com/photo-1596495577886-d920f1e7380b?auto=format&fit=crop&w=800&q=80" :
-            "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80"}')`,
+          backgroundImage: `url('${
+            isLogin
+              ? "https://images.unsplash.com/photo-1596495577886-d920f1e7380b?auto=format&fit=crop&w=800&q=80"
+              : "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80"
+          }')`,
         }}
       >
         <div className="flex flex-col items-center mb-8 -mt-10">
@@ -94,17 +103,22 @@ export default function AuthPage() {
             className="h-16 w-auto mb-2"
           />
           <span
-            className={`font-bold text-4xl tracking-wide ${isLogin ? "text-black" : "text-white"}`}
+            className={`font-bold text-4xl tracking-wide ${
+              isLogin ? "text-black" : "text-white"
+            }`}
           >
             CodeForYou
           </span>
         </div>
 
         <div className="bg-black bg-opacity-90 p-10 rounded-lg max-w-lg text-white flex flex-col items-center">
-          <h1 className="text-4xl font-extrabold mb-6">{isLogin ? "Welcome Back!" : "Create Your Account"}</h1>
-          <p className="text-lg">{isLogin
-            ? "Join the community of innovators and start building your dream project website today."
-            : "Start building and tracking your projects with the best tools available."}
+          <h1 className="text-4xl font-extrabold mb-6">
+            {isLogin ? "Welcome Back!" : "Create Your Account"}
+          </h1>
+          <p className="text-lg text-center">
+            {isLogin
+              ? "Join the community of innovators and start building your dream project website today."
+              : "Start building and tracking your projects with the best tools available."}
           </p>
         </div>
       </div>
