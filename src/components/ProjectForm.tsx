@@ -1,41 +1,46 @@
-import React, { useState } from 'react';
-import { useProjects } from '@/context/ProjectsContext';
-import type { Project } from '@/types';
+import React, { useState } from "react";
+import { useProjects } from "@/context/ProjectsContext";
+import type { Project } from "@/types";
 
-const projectTypes = ['Portfolio', 'Blog', 'E-commerce', 'Startup'];
-const featureOptions = ['Contact Form', 'Auth', 'Admin Panel'];
+const projectTypes = ["Portfolio", "Blog", "E-commerce", "Startup"];
+const featureOptions = ["Contact Form", "Auth", "Admin Panel"];
 
 export default function ProjectForm() {
   const { addProject } = useProjects();
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [type, setType] = useState(projectTypes[0]);
   const [features, setFeatures] = useState<string[]>([]);
 
   const handleFeatureToggle = (feature: string) => {
     setFeatures((prev) =>
-      prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature]
+      prev.includes(feature)
+        ? prev.filter((f) => f !== feature)
+        : [...prev, feature]
     );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return alert('Project name is required');
+    if (!name.trim()) return alert("Project name is required");
     addProject({
       id: Date.now().toString(),
       name: name.trim(),
       type,
       features,
-      status: 'Queued',
-      previewUrl: '',
+      status: "Queued",
+      previewUrl: "",
     });
-    setName('');
+    setName("");
     setType(projectTypes[0]);
     setFeatures([]);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md bg-gray-100 dark:bg-gray-700 p-6 rounded shadow">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-md bg-gray-100 dark:bg-gray-700 p-6 rounded shadow"
+    >
       <label className="block mb-3">
         Project Name
         <input

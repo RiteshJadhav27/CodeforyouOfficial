@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import { FaUserCircle, FaSignOutAlt, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -121,7 +128,9 @@ const HirePage = () => {
   const toggleEditMode = () => setEditMode(!editMode);
 
   // Input change handler
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -174,7 +183,7 @@ const HirePage = () => {
       setTimeout(() => setSubmitted(false), 2000);
     } catch (error) {
       console.error("Error submitting form:", error);
-      
+
       // Error alert
       Swal.fire({
         icon: "error",
@@ -182,7 +191,7 @@ const HirePage = () => {
         text: "Something went wrong. Please try again later.",
         confirmButtonColor: "#000000",
       });
-      
+
       setSubmitted(false);
     }
   };
@@ -277,10 +286,16 @@ const HirePage = () => {
               </div>
             ) : (
               <>
-                <Link to="/signin" className="text-gray-700 hover:text-black font-medium">
+                <Link
+                  to="/signin"
+                  className="text-gray-700 hover:text-black font-medium"
+                >
                   Sign in
                 </Link>
-                <Link to="/signup" className="text-gray-700 hover:text-black font-medium">
+                <Link
+                  to="/signup"
+                  className="text-gray-700 hover:text-black font-medium"
+                >
                   Sign up
                 </Link>
               </>
@@ -292,9 +307,12 @@ const HirePage = () => {
       {/* Page Header */}
       <section className="bg-white border-b border-gray-200 py-12 text-center">
         <div className="max-w-4xl mx-auto px-6">
-          <h1 className="text-4xl font-extrabold mb-2 text-gray-900">Hire Us</h1>
+          <h1 className="text-4xl font-extrabold mb-2 text-gray-900">
+            Hire Us
+          </h1>
           <p className="text-gray-600 text-lg">
-            Partner with CodeForYou for innovative web development solutions tailored to your needs.
+            Partner with CodeForYou for innovative web development solutions
+            tailored to your needs.
           </p>
         </div>
       </section>
@@ -323,7 +341,9 @@ const HirePage = () => {
 
         {/* Content Area */}
         <section className="flex-1 bg-white rounded-lg shadow p-6 overflow-auto">
-          <h2 className="text-2xl font-semibold mb-2">{currentOption?.title}</h2>
+          <h2 className="text-2xl font-semibold mb-2">
+            {currentOption?.title}
+          </h2>
           <p className="text-gray-600 mb-6">{currentOption?.description}</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -341,7 +361,9 @@ const HirePage = () => {
                 />
               </div>
               <div>
-                <label className="block mb-1 font-semibold text-sm">Email</label>
+                <label className="block mb-1 font-semibold text-sm">
+                  Email
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -355,7 +377,9 @@ const HirePage = () => {
             </div>
 
             <div>
-              <label className="block mb-1 font-semibold text-sm">Mobile Number</label>
+              <label className="block mb-1 font-semibold text-sm">
+                Mobile Number
+              </label>
               <input
                 type="tel"
                 name="mobile"
@@ -368,7 +392,9 @@ const HirePage = () => {
 
             {(selected === "hireUs" || selected === "collaborate") && (
               <div>
-                <label className="block mb-1 font-semibold text-sm">Company / Organization</label>
+                <label className="block mb-1 font-semibold text-sm">
+                  Company / Organization
+                </label>
                 <input
                   type="text"
                   name="company"
@@ -382,7 +408,9 @@ const HirePage = () => {
 
             {selected === "hireUs" && (
               <div>
-                <label className="block mb-1 font-semibold text-sm">Timeline</label>
+                <label className="block mb-1 font-semibold text-sm">
+                  Timeline
+                </label>
                 <input
                   type="text"
                   name="timeline"
@@ -395,7 +423,9 @@ const HirePage = () => {
             )}
 
             <div>
-              <label className="block mb-1 font-semibold text-sm">Subject</label>
+              <label className="block mb-1 font-semibold text-sm">
+                Subject
+              </label>
               <input
                 type="text"
                 name="subject"
@@ -408,7 +438,9 @@ const HirePage = () => {
             </div>
 
             <div>
-              <label className="block mb-1 font-semibold text-sm">Message</label>
+              <label className="block mb-1 font-semibold text-sm">
+                Message
+              </label>
               <textarea
                 name="message"
                 value={formData.message}
@@ -416,10 +448,14 @@ const HirePage = () => {
                 rows={5}
                 placeholder={
                   {
-                    collaborate: "Tell us about your collaboration idea or proposal...",
-                    requestProject: "Describe your project requirements, goals, and desired features...",
-                    hireUs: "Mention what kind of developers or team you need, and for how long...",
-                    consultation: "Describe the topic or issue you'd like to discuss during the consultation...",
+                    collaborate:
+                      "Tell us about your collaboration idea or proposal...",
+                    requestProject:
+                      "Describe your project requirements, goals, and desired features...",
+                    hireUs:
+                      "Mention what kind of developers or team you need, and for how long...",
+                    consultation:
+                      "Describe the topic or issue you'd like to discuss during the consultation...",
                   }[selected] || "Write your message..."
                 }
                 required
@@ -438,8 +474,9 @@ const HirePage = () => {
         </section>
       </main>
 
-      <footer className="border-t border-gray-200 text-center py-6 text-sm text-gray-500">
-        © {new Date().getFullYear()} <span className="font-semibold">CodeForYou</span>. All rights reserved.
+      <footer className="bg-black border-t border-gray-200 text-center text-white py-6 text-sm text-gray-500">
+        © {new Date().getFullYear()}{" "}
+        <span className="font-semibold">CodeForYou</span>. All rights reserved.
       </footer>
     </div>
   );

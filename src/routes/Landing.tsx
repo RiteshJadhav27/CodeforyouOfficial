@@ -103,10 +103,11 @@ const Landing: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [user, setUser] = useState({ name: "", email: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+  const [showRequestModal, setShowRequestModal] = useState(false);
+
   const handleHireClick = () => {
-  navigate("/hire");
-};
+    navigate("/hire");
+  };
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -118,69 +119,106 @@ const Landing: React.FC = () => {
     setUser({ name: "", email: "" });
     setShowProfile(false);
   };
+  const handleHireUsClick = () => {
+    // Handle your Hire Us click if needed, or route to hire page
+    alert("Hire Us clicked");
+  };
+  const handleRequestProjectClick = () => {
+    setShowRequestModal(true);
+  };
 
+  const closeRequestModal = () => {
+    setShowRequestModal(false);
+  };
+  const handleHireTeamClick = () => {
+    // Handle Hire Developer Team click or navigation
+    alert("Hire Developer Team clicked");
+  };
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800">
       {/* Navbar */}
       <header className="w-full bg-white shadow border-b border-gray-200 sticky top-0 z-40">
-  <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between px-4 sm:px-6 py-3">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between px-4 sm:px-6 py-3">
+          {/* Logo and brand */}
+          <div className="flex flex-col items-center gap-0">
+            <img src={logo} alt="CodeForYou logo" className="h-6 w-auto" />
+            <span className="font-bold text-xl">&lt;CodeForYou/&gt;</span>
+          </div>
 
-    {/* Logo and brand */}
-    <div className="flex flex-col items-center gap-0">
-      <img src={logo} alt="CodeForYou logo" className="h-6 w-auto" />
-      <span className="font-bold text-xl">&lt;CodeForYou/&gt;</span>
-    </div>
+          {/* Mobile menu toggle button */}
+          <button
+            className="md:hidden flex items-center text-gray-700"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {mobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
 
-    {/* Mobile menu toggle button */}
-    <button
-      className="md:hidden flex items-center text-gray-700"
-      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-      aria-label="Toggle navigation menu"
-    >
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        {mobileMenuOpen ? (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        )}
-      </svg>
-    </button>
+          {/* Navigation links */}
+          <nav
+            className={`flex-col md:flex-row md:flex md:items-center md:gap-4 w-full md:w-auto ${
+              mobileMenuOpen ? "flex" : "hidden"
+            } md:flex`}
+          >
+            <Link
+              to="/project"
+              className="block md:inline text-gray-700 hover:text-black font-medium px-3 py-2"
+            >
+              Projects
+            </Link>
 
-    {/* Navigation links */}
-    <nav
-      className={`flex-col md:flex-row md:flex md:items-center md:gap-4 w-full md:w-auto ${
-        mobileMenuOpen ? "flex" : "hidden"
-      } md:flex`}
-    >
-      <Link to="/project" className="block md:inline text-gray-700 hover:text-black font-medium px-3 py-2">
-        Projects
-      </Link>
-
-      {!isLoggedIn ? (
-        <>
-          <Link to="/signin" className="block md:inline text-gray-700 hover:text-black font-medium px-3 py-2">
-            Sign in
-          </Link>
-          <Link to="/signup" className="block md:inline text-gray-700 hover:text-black font-medium px-3 py-2">
-            Sign up
-          </Link>
-        </>
-      ) : (
-        <div className="relative md:inline-block">
-          {/* Profile dropdown within nav */}
+            {!isLoggedIn ? (
+              <>
+                <Link
+                  to="/signin"
+                  className="block md:inline text-gray-700 hover:text-black font-medium px-3 py-2"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="block md:inline text-gray-700 hover:text-black font-medium px-3 py-2"
+                >
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <div className="relative md:inline-block">
+                {/* Profile dropdown within nav */}
+              </div>
+            )}
+            <div className="relative ml-2">
+              <button
+                onClick={handleHireClick}
+                className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+              >
+                Hire Us
+              </button>
+            </div>
+          </nav>
         </div>
-      )}
-        <div className="relative ml-2">
-  <button
-    onClick={handleHireClick}
-    className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
-  >
-    Hire Us
-  </button>
-</div>
-    </nav>
-  </div>
-</header>
+      </header>
 
       {/* Hero Section */}
       <section className="bg-gray-100 py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
@@ -195,13 +233,15 @@ const Landing: React.FC = () => {
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight text-gray-900">
-              Build Project Websites <span className="text-black">10x Faster</span>
+              Build Project Websites{" "}
+              <span className="text-black">10x Faster</span>
               <br />
               with Modern Tools and AI Agents.
             </h1>
             <p className="text-lg text-gray-600 mb-10 max-w-lg">
-              Get templates and dashboards powered by React, Tailwind CSS, and AI. CodeForYou delivers
-              customizable web solutions for students and startups.
+              Get templates and dashboards powered by React, Tailwind CSS, and
+              AI. CodeForYou delivers customizable web solutions for students
+              and startups.
             </p>
             <div className="flex items-center max-w-lg">
               <input
@@ -213,6 +253,20 @@ const Landing: React.FC = () => {
                 <FaSearch />
               </button>
             </div>
+            {/* <div className="flex justify-center space-x-6 max-w-lg mx-auto">
+              <button
+                onClick={handleHireClick}
+                className="bg-black text-white font-bold rounded-full px-8 py-3 hover:bg-gray-800 transition shadow"
+              >
+                Hire Us
+              </button>
+              <button
+                onClick={handleHireTeamClick}
+                className="bg-gray-800 text-white font-bold rounded-full px-8 py-3 hover:bg-gray-900 transition shadow"
+              >
+                Hire Developer Team
+              </button>
+            </div> */}
           </div>
 
           <div className="flex-1">
@@ -223,17 +277,47 @@ const Landing: React.FC = () => {
                 "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80",
                 "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=400&q=80",
               ].map((src, idx) => (
-                <img key={idx} src={src} alt={`Demo ${idx + 1}`} className="object-cover rounded-2xl shadow-lg h-44 w-full" />
+                <img
+                  key={idx}
+                  src={src}
+                  alt={`Demo ${idx + 1}`}
+                  className="object-cover rounded-2xl shadow-lg h-44 w-full"
+                />
               ))}
             </div>
           </div>
         </div>
+        {/* Request Custom Project Modal (implement your form, close, and submit logic here) */}
+        {showRequestModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+            <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 relative">
+              <button
+                className="absolute top-4 right-4 text-xl text-gray-400 hover:text-gray-700"
+                onClick={() => setShowRequestModal(false)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+              <h2 className="text-2xl font-bold mb-4 text-center">
+                Request a Custom Project
+              </h2>
+              {/* Your form inputs here */}
+              {/* Example: */}
+              <form>
+                {/* Add inputs for name, email, mobile, message etc */}
+                {/* Submit button */}
+              </form>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Categories Section */}
       <section className="bg-background py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-text mb-12">Explore Categories</h2>
+          <h2 className="text-3xl font-bold text-center text-text mb-12">
+            Explore Categories
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {categories.map((cat, idx) => (
@@ -249,7 +333,9 @@ const Landing: React.FC = () => {
                 <h3 className="text-xl font-semibold text-text mb-2 text-center">
                   {cat.name}
                 </h3>
-                <p className="text-mutedText text-sm mb-4 text-center">{cat.description}</p>
+                <p className="text-mutedText text-sm mb-4 text-center">
+                  {cat.description}
+                </p>
 
                 <div className="flex space-x-2 mb-4">
                   <span className="px-3 py-1 rounded-full bg-accent text-text font-medium text-xs">
@@ -258,10 +344,16 @@ const Landing: React.FC = () => {
                 </div>
 
                 <div className="flex gap-4">
-                  <a href={cat.linkNew} className="text-text hover:text-accent font-medium text-sm transition">
+                  <a
+                    href={cat.linkNew}
+                    className="text-text hover:text-accent font-medium text-sm transition"
+                  >
                     Newest
                   </a>
-                  <a href={cat.linkBest} className="text-text hover:text-accent font-medium text-sm transition">
+                  <a
+                    href={cat.linkBest}
+                    className="text-text hover:text-accent font-medium text-sm transition"
+                  >
                     Bestsellers
                   </a>
                 </div>
@@ -278,7 +370,10 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Featured Projects */}
-      <section id="projects" className="py-20 px-4 md:px-10 bg-brandLight dark:bg-dark">
+      <section
+        id="projects"
+        className="py-20 px-4 md:px-10 bg-brandLight dark:bg-dark"
+      >
         <h3 className="text-4xl font-bold text-center mb-12 text-dark dark:text-brandLight">
           <span className="bg-gradient-to-r from-accent via-highlight to-accent bg-clip-text">
             Featured Projects
@@ -322,7 +417,9 @@ const Landing: React.FC = () => {
                 <h4 className="text-xl font-semibold mb-2 text-dark dark:text-black transition">
                   {proj.name}
                 </h4>
-                <p className="text-sm text-black-800 dark:text-black-300">{proj.desc}</p>
+                <p className="text-sm text-black-800 dark:text-black-300">
+                  {proj.desc}
+                </p>
               </div>
             </div>
           ))}
@@ -330,15 +427,19 @@ const Landing: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-16 px-6 md:px-12 bg-brandLight dark:bg-black">
+      <section
+        id="about"
+        className="py-16 px-6 md:px-12 bg-brandLight dark:bg-black"
+      >
         <h3 className="text-3xl font-bold text-center mb-8 text-white dark:text-brandLight">
           Why Choose Us?
         </h3>
         <div className="max-w-4xl mx-auto text-center text-white dark:text-brandLight leading-relaxed">
           <p>
-            CodeForYou is more than just a project service — it's your tech partner.
-            We provide personalized, scalable, and high-quality web solutions
-            for students, freelancers, and startups who want to make an impact online.
+            CodeForYou is more than just a project service — it's your tech
+            partner. We provide personalized, scalable, and high-quality web
+            solutions for students, freelancers, and startups who want to make
+            an impact online.
           </p>
         </div>
       </section>
@@ -352,25 +453,47 @@ const Landing: React.FC = () => {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Form Card */}
           <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl">
-            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Get In Touch</h3>
+            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">
+              Get In Touch
+            </h3>
             <form className="space-y-5">
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Name</label>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Name
+                </label>
                 <input className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Email</label>
-                <input type="email" className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight" />
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Phone</label>
-                <input type="tel" className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight" />
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Project Details</label>
-                <textarea rows={4} className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"></textarea>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Project Details
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
+                ></textarea>
               </div>
-              <button type="submit" className="w-full bg-black hover:bg-dark-500 text-white font-semibold py-2 rounded-full">
+              <button
+                type="submit"
+                className="w-full bg-black hover:bg-dark-500 text-white font-semibold py-2 rounded-full"
+              >
                 Send Message
               </button>
             </form>
@@ -378,13 +501,17 @@ const Landing: React.FC = () => {
 
           {/* Info Card */}
           <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl border border-border">
-            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Contact Information</h3>
+            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">
+              Contact Information
+            </h3>
             <div className="space-y-6 text-black dark:text-brandLight">
               <div className="flex items-start space-x-3">
                 <FaMapMarkerAlt className="text-black text-2xl mt-1" />
                 <div>
                   <div className="font-semibold">Address</div>
-                  <div className="text-sm">CodeForYou, Nashik, Maharashtra 420012</div>
+                  <div className="text-sm">
+                    CodeForYou, Nashik, Maharashtra 420012
+                  </div>
                 </div>
               </div>
 
@@ -420,8 +547,10 @@ const Landing: React.FC = () => {
                 <div>
                   <div className="font-semibold">Working Hours</div>
                   <div className="text-sm">
-                    Mon - Fri: 9:00 AM - 6:00 PM<br />
-                    Saturday: 10:00 AM - 4:00 PM<br />
+                    Mon - Fri: 9:00 AM - 6:00 PM
+                    <br />
+                    Saturday: 10:00 AM - 4:00 PM
+                    <br />
                     Sunday: Closed
                   </div>
                 </div>
@@ -436,7 +565,9 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
             <h4 className="font-bold text-lg mb-2">CodeForYou</h4>
-            <p className="mb-4 text-sm text-brandLight">Empowering Projects Globally</p>
+            <p className="mb-4 text-sm text-brandLight">
+              Empowering Projects Globally
+            </p>
             <div className="flex gap-3 text-xl">
               <a href="#" aria-label="LinkedIn">
                 <FaLinkedin />
@@ -511,4 +642,3 @@ const Landing: React.FC = () => {
 };
 
 export default Landing;
-  

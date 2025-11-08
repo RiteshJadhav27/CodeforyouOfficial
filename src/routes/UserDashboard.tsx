@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import logo from '../assets/logo.png';
+import logo from "../assets/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaEdit,
@@ -14,7 +14,7 @@ import {
   FaPhone,
   FaWhatsapp,
   FaClock,
-  FaUserCircle
+  FaUserCircle,
 } from "react-icons/fa";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { app } from "../firebaseConfig";
@@ -112,11 +112,29 @@ const Landing: React.FC = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-
+  const handleMenuSelect = (key: string) => {
+    switch (key) {
+      case "profile":
+        navigate("/profile#profile-info");
+        break;
+      case "wishlist":
+        navigate("/profile#wishlist");
+        break;
+      case "orders":
+        navigate("/profile#orders");
+        break;
+      case "requests":
+        navigate("/profile#requests");
+        break;
+      default:
+        navigate("/profile");
+        break;
+    }
+  };
   const [profileInfo, setProfileInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: "",
+    email: "",
+    phone: "",
     createdAt: null as string | null,
   });
 
@@ -124,7 +142,7 @@ const Landing: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setLoggedIn(true);
-        setUsername(user.displayName || '');
+        setUsername(user.displayName || "");
 
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
@@ -132,23 +150,25 @@ const Landing: React.FC = () => {
         if (userDocSnap.exists()) {
           const data = userDocSnap.data();
           setProfileInfo({
-            name: data.name || user.displayName || '',
-            email: data.email || user.email || '',
-            phone: data.phone || '',
-            createdAt: data.createdAt ? data.createdAt.toDate().toLocaleString() : null,
+            name: data.name || user.displayName || "",
+            email: data.email || user.email || "",
+            phone: data.phone || "",
+            createdAt: data.createdAt
+              ? data.createdAt.toDate().toLocaleString()
+              : null,
           });
         } else {
           setProfileInfo({
-            name: user.displayName || '',
-            email: user.email || '',
-            phone: '',
+            name: user.displayName || "",
+            email: user.email || "",
+            phone: "",
             createdAt: null,
           });
         }
       } else {
         setLoggedIn(false);
-        setUsername('');
-        setProfileInfo({ name: '', email: '', phone: '', createdAt: null });
+        setUsername("");
+        setProfileInfo({ name: "", email: "", phone: "", createdAt: null });
         navigate("/signin");
       }
     });
@@ -159,7 +179,7 @@ const Landing: React.FC = () => {
   const toggleEditMode = () => setEditMode(!editMode);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileInfo(prev => ({
+    setProfileInfo((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -173,8 +193,8 @@ const Landing: React.FC = () => {
   };
 
   const handleHireClick = () => {
-  navigate("/hire");
-};
+    navigate("/hire");
+  };
 
   const handleSaveProfile = () => {
     setUsername(profileInfo.name);
@@ -204,83 +224,191 @@ const Landing: React.FC = () => {
           </div>
 
           <nav className="flex items-center gap-4 mt-3 md:mt-0">
-            <Link to="/project" className="text-gray-700 hover:text-black font-medium">
+            <Link
+              to="/project"
+              className="text-gray-700 hover:text-black font-medium"
+            >
               Projects
             </Link>
             {!loggedIn ? (
               <>
-                <Link to="/signin" className="text-gray-700 hover:text-black font-medium">
+                <Link
+                  to="/signin"
+                  className="text-gray-700 hover:text-black font-medium"
+                >
                   Sign in
                 </Link>
-                <Link to="/signup" className="text-gray-700 hover:text-black font-medium">
+                <Link
+                  to="/signup"
+                  className="text-gray-700 hover:text-black font-medium"
+                >
                   Sign up
                 </Link>
               </>
             ) : (
               <div className="relative">
-                <button onClick={toggleProfile} className="flex items-center gap-2 text-gray-700 hover:text-black font-medium focus:outline-none">
-                  <FaUserCircle size={28} />
-                  <span>Welcome, {profileInfo.name}!</span>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-3 text-gray-700 hover:text-black font-semibold focus:outline-none rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:ring-gray-400 transition"
+                  aria-haspopup="true"
+                  aria-expanded={profileOpen}
+                >
+                  <FaUserCircle size={28} className="text-gray-600" />
+                  <span className="hidden sm:inline">
+                    Welcome, {profileInfo.name}!
+                  </span>
+                  <svg
+                    className={`w-5 h-5 transition-transform duration-200 ${
+                      profileOpen ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg text-gray-900 z-50 p-4 space-y-3">
+                  <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-300 rounded-xl shadow-lg text-gray-900 z-50 p-5 space-y-4">
                     {!editMode ? (
                       <>
-                        <div><strong>Name:</strong> {profileInfo.name}</div>
-                        <div><strong>Email:</strong> {profileInfo.email}</div>
-                        <div><strong>Phone:</strong> {profileInfo.phone}</div>
-                        <div><strong>Member since:</strong> {profileInfo.createdAt || 'N/A'}</div>
-                        <button
-                          onClick={toggleEditMode}
-                          className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition flex items-center justify-center"
+                        <section className="space-y-1 text-sm">
+                          <p>
+                            <strong>Name:</strong> {profileInfo.name}
+                          </p>
+                          <p>
+                            <strong>Email:</strong> {profileInfo.email}
+                          </p>
+                          <p>
+                            <strong>Phone:</strong> {profileInfo.phone || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Member since:</strong>{" "}
+                            {profileInfo.createdAt || "N/A"}
+                          </p>
+                        </section>
+
+                        <nav
+                          className="mt-3 flex flex-col space-y-2 border-t border-gray-200 pt-4"
+                          role="menu"
+                          aria-label="Profile Navigation"
                         >
-                          <FaEdit className="inline mr-2" /> Edit Profile
-                        </button>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full bg-red-600 text-white rounded py-2 hover:bg-red-700 transition flex items-center justify-center"
-                        >
-                          <FaSignOutAlt className="inline mr-2" /> Logout
-                        </button>
+                          {[
+                            { label: "My Profile", key: "profile" },
+                            { label: "My Wishlist", key: "wishlist" },
+                            { label: "My Orders", key: "orders" },
+                            {
+                              label: "My Requests / Responses",
+                              key: "requests",
+                            },
+                          ].map(({ label, key }) => (
+                            <button
+                              key={key}
+                              onClick={() => {
+                                handleMenuSelect(key);
+                                setProfileOpen(false);
+                              }}
+                              className="text-left w-full px-3 py-2 rounded-md hover:bg-gray-100 font-medium transition"
+                              role="menuitem"
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </nav>
+
+                        <div className="flex flex-col gap-2 mt-5">
+                          <button
+                            onClick={toggleEditMode}
+                            className="w-full bg-blue-600 text-white rounded-md py-2 hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                            aria-label="Edit Profile"
+                          >
+                            <FaEdit /> Edit Profile
+                          </button>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full bg-red-600 text-white rounded-md py-2 hover:bg-red-700 transition flex items-center justify-center gap-2"
+                            aria-label="Logout"
+                          >
+                            <FaSignOutAlt /> Logout
+                          </button>
+                        </div>
                       </>
                     ) : (
-                      <form className="space-y-3">
+                      <form
+                        className="space-y-4"
+                        aria-label="Edit Profile Form"
+                      >
                         <div>
-                          <label className="block text-sm font-medium mb-1">Name</label>
+                          <label
+                            htmlFor="name"
+                            className="block text-sm font-medium mb-1"
+                          >
+                            Name
+                          </label>
                           <input
+                            id="name"
                             type="text"
                             name="name"
                             value={profileInfo.name}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            aria-required="true"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">Email</label>
+                          <label
+                            htmlFor="email"
+                            className="block text-sm font-medium mb-1"
+                          >
+                            Email
+                          </label>
                           <input
+                            id="email"
                             type="email"
                             name="email"
                             value={profileInfo.email}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            aria-required="true"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">Phone</label>
+                          <label
+                            htmlFor="phone"
+                            className="block text-sm font-medium mb-1"
+                          >
+                            Phone
+                          </label>
                           <input
+                            id="phone"
                             type="tel"
                             name="phone"
                             value={profileInfo.phone}
                             onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
                         <div className="flex justify-between">
-                          <button type="button" onClick={toggleEditMode} className="bg-gray-300 rounded px-4 py-2">
+                          <button
+                            type="button"
+                            onClick={toggleEditMode}
+                            className="bg-gray-300 rounded-md px-5 py-2 hover:bg-gray-400 transition"
+                          >
                             Cancel
                           </button>
-                          <button type="button" onClick={handleSaveProfile} className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition">
+                          <button
+                            type="button"
+                            onClick={handleSaveProfile}
+                            className="bg-blue-600 text-white rounded-md px-5 py-2 hover:bg-blue-700 transition"
+                          >
                             Save
                           </button>
                         </div>
@@ -291,20 +419,20 @@ const Landing: React.FC = () => {
               </div>
             )}
 
-<div className="relative ml-2">
-  <button
-    onClick={handleHireClick}
-    className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
-  >
-    Hire Us
-  </button>
-</div>
+            <div className="relative ml-2">
+              <button
+                onClick={handleHireClick}
+                className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+              >
+                Hire Us
+              </button>
+            </div>
           </nav>
         </div>
       </header>
 
       {/* Hero Section */}
-          <section className="bg-gray-100 py-16">
+      <section className="bg-gray-100 py-16">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-center gap-16">
           <div className="flex-1">
             <div className="mb-8">
@@ -316,13 +444,15 @@ const Landing: React.FC = () => {
               </span>
             </div>
             <h1 className="text-5xl font-extrabold mb-4 leading-tight text-gray-900">
-              Build Project Websites <span className="text-black">10x Faster</span>
+              Build Project Websites{" "}
+              <span className="text-black">10x Faster</span>
               <br />
               with Modern Tools and AI Agents.
             </h1>
             <p className="text-lg text-gray-600 mb-7 max-w-lg">
-              Get templates and dashboards powered by React, Tailwind CSS, and AI. CodeForYou delivers
-              customizable web solutions for students and startups.
+              Get templates and dashboards powered by React, Tailwind CSS, and
+              AI. CodeForYou delivers customizable web solutions for students
+              and startups.
             </p>
             <div className="flex items-center max-w-lg mb-10">
               <input
@@ -384,7 +514,9 @@ const Landing: React.FC = () => {
                 <h3 className="text-xl font-semibold text-text mb-2 text-center">
                   {cat.name}
                 </h3>
-                <p className="text-mutedText text-sm mb-4 text-center">{cat.description}</p>
+                <p className="text-mutedText text-sm mb-4 text-center">
+                  {cat.description}
+                </p>
 
                 <div className="flex space-x-2 mb-4">
                   <span className="px-3 py-1 rounded-full bg-accent text-text font-medium text-xs">
@@ -471,13 +603,19 @@ const Landing: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-16 px-6 md:px-12 bg-brandLight dark:bg-black">
-        <h3 className="text-3xl font-bold text-center mb-8 text-white dark:text-brandLight">Why Choose Us?</h3>
+      <section
+        id="about"
+        className="py-16 px-6 md:px-12 bg-brandLight dark:bg-black"
+      >
+        <h3 className="text-3xl font-bold text-center mb-8 text-white dark:text-brandLight">
+          Why Choose Us?
+        </h3>
         <div className="max-w-4xl mx-auto text-center text-white dark:text-brandLight leading-relaxed">
           <p>
-            CodeForYou is more than just a project service — it's your tech partner.
-            We provide personalized, scalable, and high-quality web solutions
-            for students, freelancers, and startups who want to make an impact online.
+            CodeForYou is more than just a project service — it's your tech
+            partner. We provide personalized, scalable, and high-quality web
+            solutions for students, freelancers, and startups who want to make
+            an impact online.
           </p>
         </div>
       </section>
@@ -491,30 +629,38 @@ const Landing: React.FC = () => {
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
           {/* Form Card */}
           <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl">
-            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Get In Touch</h3>
+            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">
+              Get In Touch
+            </h3>
             <form className="space-y-5">
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Name</label>
-                <input
-                  className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
-                />
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Name
+                </label>
+                <input className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Email</label>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Email
+                </label>
                 <input
                   type="email"
                   className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Phone</label>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Phone
+                </label>
                 <input
                   type="tel"
                   className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-black dark:text-brandLight">Project Details</label>
+                <label className="block text-sm mb-1 text-black dark:text-brandLight">
+                  Project Details
+                </label>
                 <textarea
                   rows={4}
                   className="w-full border border-black rounded px-4 py-2 focus:outline-black focus:ring-1 focus:ring-black bg-brand dark:bg-gray-100 text-white dark:text-brandLight"
@@ -531,13 +677,17 @@ const Landing: React.FC = () => {
 
           {/* Info Card */}
           <div className="bg-brand dark:bg-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl border border-border ">
-            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">Contact Information</h3>
+            <h3 className="text-xl font-bold mb-6 text-black dark:text-brandLight">
+              Contact Information
+            </h3>
             <div className="space-y-6 text-black dark:text-brandLight">
               <div className="flex items-start space-x-3">
                 <FaMapMarkerAlt className="text-black text-2xl mt-1" />
                 <div>
                   <div className="font-semibold">Address</div>
-                  <div className="text-sm">CodeForYou, Nashik, Maharashtra 420012</div>
+                  <div className="text-sm">
+                    CodeForYou, Nashik, Maharashtra 420012
+                  </div>
                 </div>
               </div>
 
@@ -573,8 +723,10 @@ const Landing: React.FC = () => {
                 <div>
                   <div className="font-semibold">Working Hours</div>
                   <div className="text-sm">
-                    Mon - Fri: 9:00 AM - 6:00 PM<br />
-                    Saturday: 10:00 AM - 4:00 PM<br />
+                    Mon - Fri: 9:00 AM - 6:00 PM
+                    <br />
+                    Saturday: 10:00 AM - 4:00 PM
+                    <br />
                     Sunday: Closed
                   </div>
                 </div>
@@ -589,22 +741,42 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
             <h4 className="font-bold text-lg mb-2">CodeForYou</h4>
-            <p className="mb-4 text-sm text-brandLight">Empowering Projects Globally</p>
+            <p className="mb-4 text-sm text-brandLight">
+              Empowering Projects Globally
+            </p>
             <div className="flex gap-3 text-xl">
-              <a href="#" aria-label="LinkedIn"><FaLinkedin /></a>
-              <a href="#" aria-label="Instagram"><FaInstagram /></a>
-              <a href="#" aria-label="YouTube"><FaYoutube /></a>
+              <a href="#" aria-label="LinkedIn">
+                <FaLinkedin />
+              </a>
+              <a href="#" aria-label="Instagram">
+                <FaInstagram />
+              </a>
+              <a href="#" aria-label="YouTube">
+                <FaYoutube />
+              </a>
             </div>
           </div>
           <div>
             <h4 className="font-bold mb-2 text-brandLight">Quick Links</h4>
             <ul className="space-y-2 text-brandLight">
-              <li><a href="/">Home</a></li>
-              <li><a href="/services">Services</a></li>
-              <li><a href="/projects">Projects</a></li>
-              <li><a href="/about">About Us</a></li>
-              <li><a href="/blog">Blog</a></li>
-              <li><a href="/contact">Contact</a></li>
+              <li>
+                <a href="/">Home</a>
+              </li>
+              <li>
+                <a href="/services">Services</a>
+              </li>
+              <li>
+                <a href="/projects">Projects</a>
+              </li>
+              <li>
+                <a href="/about">About Us</a>
+              </li>
+              <li>
+                <a href="/blog">Blog</a>
+              </li>
+              <li>
+                <a href="/contact">Contact</a>
+              </li>
             </ul>
           </div>
           <div>
@@ -619,9 +791,15 @@ const Landing: React.FC = () => {
           <div>
             <h4 className="font-bold mb-2 text-brandLight">Contact Info</h4>
             <ul className="space-y-2 text-brandLight text-sm">
-              <li className="flex items-center gap-1"><FaMapMarkerAlt /> CodeForYou Nashik Maharashtra 420012</li>
-              <li className="flex items-center gap-1"><FaEnvelope /> contact@codeforyou.com</li>
-              <li className="flex items-center gap-1"><FaPhone /> +91 90758 63917</li>
+              <li className="flex items-center gap-1">
+                <FaMapMarkerAlt /> CodeForYou Nashik Maharashtra 420012
+              </li>
+              <li className="flex items-center gap-1">
+                <FaEnvelope /> contact@codeforyou.com
+              </li>
+              <li className="flex items-center gap-1">
+                <FaPhone /> +91 90758 63917
+              </li>
             </ul>
           </div>
         </div>

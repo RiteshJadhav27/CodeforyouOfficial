@@ -36,7 +36,8 @@ export default function AuthPage() {
     event.preventDefault();
     const form = event.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement)
+      .value;
 
     if (!isLogin) {
       // REGISTER
@@ -44,7 +45,8 @@ export default function AuthPage() {
         form.elements.namedItem("confirm_password") as HTMLInputElement
       ).value;
       const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-      const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
+      const phone = (form.elements.namedItem("phone") as HTMLInputElement)
+        .value;
 
       if (password !== confirmPassword) {
         Swal.fire("Error", "Passwords do not match!", "error");
@@ -53,7 +55,11 @@ export default function AuthPage() {
 
       try {
         await setPersistence(auth, browserSessionPersistence);
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
 
         // Only create user with role "user"
         await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -249,7 +255,7 @@ export default function AuthPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-accent text-text font-semibold rounded-md py-3 hover:bg-accent/90 transition"
+                  className="w-full bg-black text-white font-semibold rounded-md py-3 hover:bg-gray-700 transition "
                 >
                   Sign Up
                 </button>
