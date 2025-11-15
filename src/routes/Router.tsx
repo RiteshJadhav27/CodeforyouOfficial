@@ -3,13 +3,12 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./Landing";
 import UserDashboard from "./UserDashboard";
 import Admin from "../components/AdminPanel";
-import Preview from "./Preview";
 import SignIn from "./Auth";
 import Project from "../components/Projects";
 import AdminAuth from "../components/AdminAuth"; // Import your SignIn component here
 import Hire from "../components/hire";
 import ProfilePage from "../components/profile";
-import ProjectDetails from "../components/ProjectDeatils";
+import ProjectPreview from "./ProjectPreview";
 
 export default function Router() {
   return (
@@ -20,11 +19,10 @@ export default function Router() {
       <Route path="/userdashboard" element={<UserDashboard />} />
       <Route path="/AdminPanel" element={<Admin />} />
       <Route path="/adminAuth" element={<AdminAuth />} />
-      <Route path="/preview/:id" element={<Preview />} />
       <Route path="*" element={<Navigate to="/" replace />} />
       <Route path="/hire" element={<Hire />} />
       <Route path="/profile" element={<ProfilePage />} />
-      {/* <Route path="/projectdetails" element={<ProjectDetails />} /> */}
+      <Route path="/preview/:projectName" element={<ProjectPreview />} />
     </Routes>
   );
 }

@@ -1,0 +1,106 @@
+/* General body styles */
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Background image styles */
+body {
+    /* background-image: url('/img/sign-log.png');  Replace with your image URL */
+    /* background-image: url('/img/sign-log.png'); */
+    /* background-image: url('/signup.jpg'); */
+    background: url('/img/signup.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Keeps the background fixed when scrolling */
+}
+
+/* Main container styles */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    position: relative;
+}
+
+/* Form container styles */
+.form-container {
+    background-color: rgba(255, 255, 255, 0.5); /* White background with some transparency */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    position: absolute;  /* Allows the form to be moved */
+    top: 50%;  /* Initially position the form in the center */
+    left: 75%; /* Initially position the form in the center */
+    transform: translate(-50%, -50%); /* Center the form */
+}
+
+/* Header for dragging */
+.drag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+}
+
+.drag-icon {
+    font-size: 20px;
+    cursor: move;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Form and text styles */
+label {
+    font-size: 14px;
+    color: #333;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 94%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+p {
+    text-align: center;
+}
+
+a {
+    color:#e1f5fe;
+    text-decoration: none;
+}
+
+/* Add some responsive styles */
+@media (max-width: 768px) {
+    .form-container {
+        width: 90%; /* Make form width responsive on smaller screens */
+    }
+}

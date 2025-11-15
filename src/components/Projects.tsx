@@ -599,9 +599,27 @@ export default function ProjectsPage() {
                         <FaShoppingCart className="inline-block mr-2" />
                         Request This Project
                       </button>
-                      {/* <button className="flex-1 border border-black py-2 rounded-md font-semibold hover:bg-gray-100 transition">
+
+                      <button
+                        className="flex-1 border border-black py-2 rounded-md font-semibold hover:bg-gray-100 transition"
+                        onClick={() => {
+                          // Parses liveDemoURL to extract project folder name
+                          const projectFolder =
+                            selectedProject.liveDemoURL?.split("/")[2];
+                          if (projectFolder) {
+                            navigate(`/preview/${projectFolder}`);
+                          } else {
+                            // fallback or show error
+                            Swal.fire({
+                              icon: "error",
+                              title: "Preview Unavailable",
+                              text: "Live preview is not available for this project.",
+                            });
+                          }
+                        }}
+                      >
                         Live Preview
-                      </button> */}
+                      </button>
                     </div>
 
                     <p className="text-sm text-gray-500 mt-3">

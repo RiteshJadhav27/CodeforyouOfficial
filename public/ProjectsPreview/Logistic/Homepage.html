@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - GlobalTradeHub</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Your Custom CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom CSS for Hero Section and Cards */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Horizontal Navbar Styles */
+        .navbar {
+            background-color: #343a40;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .navbar-brand {
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .navbar-brand h2 {
+            margin-left: 10px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .nav-item {
+            margin: 0 15px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #007bff;
+            transform: translateY(-3px);
+        }
+
+        .nav-link i {
+            margin-right: 8px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(to right, #007bff, #00c6ff);
+            color: white;
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .hero-section p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        /* Cards for New Orders, Requests, etc. */
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card i {
+            font-size: 40px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .card h5 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card a {
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .card a:hover {
+            background-color: #0056b3;
+        }
+
+        /* Responsive Design for Hero Section and Cards */
+        @media (max-width: 768px) {
+            .cards-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Horizontal Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <a href="index.html" class="navbar-brand">
+            <i class="fas fa-globe"></i> 
+            <h2>GlobalTradeHub</h2>
+        </a>
+
+        <!-- Hamburger Icon for Mobile -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="about.html" class="nav-link"><i class="fas fa-info-circle"></i> About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a href="service.html" class="nav-link"><i class="fas fa-cogs"></i> Services</a>
+                </li>
+                <li class="nav-item">
+                    <a href="orders.html" class="nav-link"><i class="fas fa-box"></i> My Orders</a>
+                </li>
+                <li class="nav-item">
+                    <a href="notifications.html" class="nav-link"><i class="fas fa-bell"></i> Notifications</a>
+                </li>
+                <li class="nav-item">
+                    <a href="account.html" class="nav-link"><i class="fas fa-user"></i> My Account</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1>Welcome to GlobalTradeHub</h1>
+        <p>Your platform for seamless global trade management. Take control of your orders, requests, and more!</p>
+        
+        <!-- Cards for New Order, New Request, etc. -->
+        <div class="cards-container">
+            <div class="card">
+                <i class="fas fa-plus-circle"></i>
+                <h5>New Order</h5>
+                <p>Place a new order and start your trade process instantly.</p>
+                <a href="new-order.html">Place Order</a>
+            </div>
+            <div class="card">
+                <i class="fas fa-handshake"></i>
+                <h5>New Request</h5>
+                <p>Submit a new request for trade inquiries or services.</p>
+                <a href="new-request.html">Make Request</a>
+            </div>
+            <div class="card">
+                <i class="fas fa-history"></i>
+                <h5>Recent Transactions</h5>
+                <p>View your latest orders and trade history.</p>
+                <a href="transactions.html">View Transactions</a>
+            </div>
+            <div class="card">
+                <i class="fas fa-check-circle"></i>
+                <h5>Pending Approvals</h5>
+                <p>Check your pending approvals and clear any pending tasks.</p>
+                <a href="approvals.html">View Approvals</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
