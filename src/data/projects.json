@@ -41,7 +41,7 @@
     "status": "Completed",
     "technologies": ["Angular", "Node.js", "Firebase"],
     "liveDemoURL": "/ProjectsPreview/Construction-Services/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T17:30:00Z"
   },
   {
@@ -71,7 +71,7 @@
     "status": "Completed",
     "technologies": ["Vue", "Firebase", "Stripe"],
     "liveDemoURL": "/ProjectsPreview/Fashion-Brand/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T17:50:00Z"
   },
   {
@@ -146,7 +146,7 @@
     "status": "Completed",
     "technologies": ["React", "Node.js", "MongoDB"],
     "liveDemoURL": "/ProjectsPreview/Fashion-Hub/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T18:40:00Z"
   },
   {
@@ -206,7 +206,7 @@
     "status": "Completed",
     "technologies": ["React", "Node.js", "MongoDB"],
     "liveDemoURL": "/ProjectsPreview/Fruit-veggies/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T19:20:00Z"
   },
   {
@@ -236,7 +236,7 @@
     "status": "Completed",
     "technologies": ["React", "Node.js", "MongoDB"],
     "liveDemoURL": "",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T19:40:00Z"
   },
   {
@@ -251,7 +251,7 @@
     "status": "Active",
     "technologies": ["React", "Node.js", "MongoDB"],
     "liveDemoURL": "/ProjectsPreview/Logistic/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T19:50:00Z"
   },
   {
@@ -281,7 +281,7 @@
     "status": "Active",
     "technologies": ["React", "Node.js", "PostgreSQL"],
     "liveDemoURL": "/ProjectsPreview/Import-Export/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T20:10:00Z"
   },
   {
@@ -326,7 +326,7 @@
     "status": "Completed",
     "technologies": ["React", "Firebase", "Stripe"],
     "liveDemoURL": "/ProjectsPreview/FruitMartOrgi/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T20:40:00Z"
   },
   {
@@ -356,7 +356,7 @@
     "status": "Completed",
     "technologies": ["React", "Node.js", "MongoDB"],
     "liveDemoURL": "/ProjectsPreview/Resturant-Site/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T21:00:00Z"
   },
   {
@@ -371,7 +371,7 @@
     "status": "Active",
     "technologies": ["Angular", "Firebase", "Express"],
     "liveDemoURL": "/ProjectsPreview/Fashion-Club/index.html",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-10-29T21:10:00Z"
   },
   {
@@ -401,7 +401,7 @@
     "status": "Active",
     "technologies": ["React", "Firebase"],
     "liveDemoURL": "/ProjectsPreview/Pets-Shop/index.html",
-    "featured": false,
+    "featured": true,
     "createdAt": "2025-10-29T21:30:00Z"
   },
   {
@@ -431,6 +431,21 @@
     "status": "Active",
     "technologies": ["React", "Node.js", "MongoDB"],
     "liveDemoURL": "/ProjectsPreview/Yummy/index.html",
+    "featured": false,
+    "createdAt": "2025-10-29T21:50:00Z"
+  },
+  {
+    "id": "130",
+    "name": "Photos Gallery",
+    "description": "A modern photo gallery app featuring seamless image display, organized albums, and a smooth, responsive user experience.",
+    "imageURL": "https://res.cloudinary.com/dfayyzw68/image/upload/v1763264238/APhoto_loyu64.png",
+    "price": 900,
+    "category": "Photo App/Web",
+    "rating": 4.4,
+    "repoURL": "https://github.com/yourrepo/yummy",
+    "status": "Active",
+    "technologies": ["React", "Node.js", "MongoDB"],
+    "liveDemoURL": "",
     "featured": false,
     "createdAt": "2025-10-29T21:50:00Z"
   }

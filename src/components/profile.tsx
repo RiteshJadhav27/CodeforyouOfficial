@@ -10,6 +10,7 @@ import {
   FaHome,
   FaCode,
 } from "react-icons/fa";
+import projectsData from "../data/projects.json";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { app } from "../firebaseConfig";
@@ -70,6 +71,9 @@ const ProfilePage: React.FC = () => {
     });
     setEditMode(false);
   };
+  const [wishlist, setWishlist] = useState<string[]>([]);
+
+  const wishlistProjects = projectsData.filter((p) => wishlist.includes(p.id));
 
   if (loading)
     return <div className="p-10 text-center">Loading profile...</div>;
@@ -244,10 +248,33 @@ const ProfilePage: React.FC = () => {
           )}
 
           {activeTab === "wishlist" && (
-            <div className="text-center text-gray-500 py-20">
-              <FaHeart className="text-5xl mx-auto mb-4 text-red-400" />
-              <p>No items in your wishlist yet.</p>
-            </div>
+            <main>
+              {wishlistProjects.length === 0 ? (
+                <div className="text-center text-gray-500 py-20">
+                  <FaHeart className="text-5xl mx-auto mb-4 text-red-400" />
+                  <p>No items in your wishlist yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                  {wishlistProjects.map((project) => (
+                    <article
+                      key={project.id}
+                      className="bg-white rounded-lg shadow p-4"
+                    >
+                      <img
+                        src={project.imageURL}
+                        alt={project.name}
+                        className="rounded mb-3 h-40 w-full object-cover"
+                      />
+                      <h3 className="text-lg font-semibold">{project.name}</h3>
+                      <p className="text-gray-600 text-sm">
+                        {project.description}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </main>
           )}
 
           {activeTab === "orders" && (

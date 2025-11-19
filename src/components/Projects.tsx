@@ -21,6 +21,9 @@ import {
   collection,
   addDoc,
   serverTimestamp,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import projectsData from "../data/projects.json";
@@ -106,12 +109,6 @@ export default function ProjectsPage() {
     signOut(auth);
     setUser(null);
     navigate("/");
-  };
-
-  const toggleWishlist = (id: string) => {
-    setWishlist((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
-    );
   };
 
   const filteredProjects = projectsData.filter(
@@ -209,6 +206,30 @@ export default function ProjectsPage() {
     }
   };
 
+  // Modify toggleWishlist to update Firestore
+  const toggleWishlist = async (projectId: string) => {
+    if (!user?.uid) {
+      alert("Please login to add to wishlist");
+      return;
+    }
+    const userDocRef = doc(db, "users", user.uid);
+    const isInWishlist = wishlist.includes(projectId);
+    try {
+      if (isInWishlist) {
+        await updateDoc(userDocRef, {
+          wishlist: arrayRemove(projectId),
+        });
+        setWishlist((prev) => prev.filter((id) => id !== projectId));
+      } else {
+        await updateDoc(userDocRef, {
+          wishlist: arrayUnion(projectId),
+        });
+        setWishlist((prev) => [...prev, projectId]);
+      }
+    } catch (error) {
+      console.error("Failed to update wishlist", error);
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800">
       {/* Navbar */}
@@ -405,7 +426,7 @@ export default function ProjectsPage() {
                           : `Add ${project.name} to wishlist`
                       }
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent opening modal
+                        e.stopPropagation(); // Prevent other click events
                         toggleWishlist(project.id);
                       }}
                       className="text-red-500 hover:text-red-600 transition"
@@ -457,27 +478,6 @@ export default function ProjectsPage() {
               aria-label="Close"
             >
               &times;
-            </button>
-
-            {/* Wishlist Floating Button */}
-            <button
-              onClick={() => toggleWishlist(selectedProject.id)}
-              className={`absolute left-6 top-6 z-50 bg-white shadow-lg rounded-full p-3 hover:bg-red-50 transition ${
-                wishlist.includes(selectedProject.id)
-                  ? "text-red-600"
-                  : "text-gray-400"
-              }`}
-              title={
-                wishlist.includes(selectedProject.id)
-                  ? "Remove from Wishlist"
-                  : "Add to Wishlist"
-              }
-            >
-              {wishlist.includes(selectedProject.id) ? (
-                <FaHeart size={22} />
-              ) : (
-                <FaRegHeart size={22} />
-              )}
             </button>
 
             {/* Main Section */}
