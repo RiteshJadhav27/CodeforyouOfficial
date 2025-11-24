@@ -31,9 +31,17 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { HiCurrencyRupee } from "react-icons/hi";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  addDoc,
+  collection,
+  serverTimestamp,
+} from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import RequestCustomProjectModal from "../components/RequestCustomProjectModal";
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -224,35 +232,24 @@ const Landing: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const whatsappNumber = "+919075863917";
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const whatsappNumber = "+91 90758 63917";
 
-  const handleMenuSelect = (key: string) => {
-    switch (key) {
-      case "profile":
-        navigate("/profile#profile-info");
-        break;
-      case "wishlist":
-        navigate("/profile#wishlist");
-        break;
-      case "orders":
-        navigate("/profile#orders");
-        break;
-      case "requests":
-        navigate("/profile#requests");
-        break;
-      default:
-        navigate("/profile");
-        break;
-    }
-  };
   const [profileInfo, setProfileInfo] = useState({
     name: "",
     email: "",
     phone: "",
     createdAt: null as string | null,
+  });
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    details: "",
   });
 
   useEffect(() => {
@@ -294,7 +291,6 @@ const Landing: React.FC = () => {
 
   // Hero section
   const [tagIndex, setTagIndex] = useState(0);
-  const [imgIndex, setImgIndex] = useState(0);
 
   // Tagline ticker
   useEffect(() => {
@@ -414,16 +410,31 @@ const Landing: React.FC = () => {
     );
   }
 
-  const toggleProfile = () => setProfileOpen(!profileOpen);
-  const toggleEditMode = () => setEditMode(!editMode);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileInfo((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSuccessMsg("");
+    setErrorMsg("");
+    try {
+      setLoading(true);
+      await addDoc(collection(db, "contactUs"), {
+        ...contactForm,
+        createdAt: serverTimestamp(),
+      });
+      setLoading(false);
+      setSuccessMsg("Message sent! We'll get back within 24 hours.");
+      setContactForm({ name: "", email: "", phone: "", details: "" });
+    } catch (error) {
+      setLoading(false);
+      setErrorMsg("Could not send your message. Please try again.");
+    }
+  };
   const handleLogout = () => {
     auth.signOut();
     setLoggedIn(false);
@@ -439,22 +450,20 @@ const Landing: React.FC = () => {
     navigate("/hire");
   };
 
-  const handleSaveProfile = () => {
-    setUsername(profileInfo.name);
-    setEditMode(false);
-    // Optionally add Firestore update logic here
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800">
       {/* Navbar */}
       <header className="w-full bg-white shadow border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between px-6 py-3">
-          <div className="flex flex-col items-center gap-0">
-            <img src={logo} alt="CodeForYou logo" className="h-6 w-auto" />
-            <span className="font-bold text-xl">&lt;CodeForYou/&gt;</span>
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-6 py-3 gap-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <img src={logo} alt="CodeForYou logo" className="h-7 w-auto" />
+            <span className="font-bold text-lg md:text-xl">
+              &lt;CodeForYou/&gt;
+            </span>
           </div>
 
+          {/* Desktop search */}
           <div className="hidden md:flex flex-1 justify-center">
             <div className="relative w-96 max-w-full">
               <input
@@ -466,7 +475,8 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          <nav className="flex items-center gap-4 mt-3 md:mt-0">
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-4">
             <Link
               to="/project"
               className="text-gray-700 hover:text-black font-medium"
@@ -524,15 +534,14 @@ const Landing: React.FC = () => {
                   <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-300 rounded-xl shadow-lg text-gray-900 z-50 p-3">
                     <button
                       onClick={() => {
-                        // Navigate to profile
                         openProfile();
+                        setProfileOpen(false);
                       }}
                       className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 font-medium flex items-center gap-2"
                     >
                       <FaUser />
                       Profile
                     </button>
-
                     <button
                       onClick={() => {
                         handleLogout();
@@ -548,16 +557,114 @@ const Landing: React.FC = () => {
               </div>
             )}
 
-            <div className="relative ml-2">
-              <button
-                onClick={handleHireClick}
-                className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
-              >
-                Hire Us
-              </button>
-            </div>
+            <button
+              onClick={handleHireClick}
+              className="bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+            >
+              Hire Us
+            </button>
           </nav>
+
+          {/* Mobile right side: search icon + menu */}
+          <div className="flex items-center gap-3 md:hidden">
+            {/* Small search for mobile (optional inline) */}
+            <button
+              onClick={() => setShowMobileSearch((prev) => !prev)}
+              className="p-2 rounded-full border border-gray-300 text-gray-600"
+            >
+              <FaSearch />
+            </button>
+
+            <button
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="p-2 rounded-md border border-gray-300 text-gray-700"
+              aria-label="Toggle navigation"
+            >
+              <span className="block w-5 h-[2px] bg-gray-800 mb-1"></span>
+              <span className="block w-5 h-[2px] bg-gray-800 mb-1"></span>
+              <span className="block w-5 h-[2px] bg-gray-800"></span>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile search bar */}
+        {showMobileSearch && (
+          <div className="md:hidden px-4 pb-3">
+            <div className="relative">
+              <input
+                type="text"
+                className="w-full rounded-full border border-gray-300 bg-gray-50 px-5 py-2 pl-10 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+                placeholder="Search themes…"
+              />
+              <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-gray-200 px-4 pb-4 space-y-3 bg-white">
+            <Link
+              to="/project"
+              className="block pt-3 text-gray-700 hover:text-black font-medium"
+              onClick={() => setMobileOpen(false)}
+            >
+              Projects
+            </Link>
+
+            {!loggedIn ? (
+              <>
+                <Link
+                  to="/signin"
+                  className="block text-gray-700 hover:text-black font-medium"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="block text-gray-700 hover:text-black font-medium"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    openProfile();
+                    setMobileOpen(false);
+                  }}
+                  className="w-full text-left text-gray-700 hover:text-black font-medium flex items-center gap-2"
+                >
+                  <FaUserCircle />
+                  <span>Profile ({profileInfo.name})</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileOpen(false);
+                  }}
+                  className="w-full text-left text-red-600 hover:text-red-700 font-medium flex items-center gap-2"
+                >
+                  <FaSignOutAlt />
+                  <span>Logout</span>
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => {
+                handleHireClick();
+                setMobileOpen(false);
+              }}
+              className="w-full mt-2 bg-black hover:bg-gray-800 text-white font-bold rounded px-5 py-2 transition shadow focus:outline-none"
+            >
+              Hire Us
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -715,12 +822,6 @@ const Landing: React.FC = () => {
               );
             })}
           </div>
-
-          <div className="flex justify-center mt-10">
-            <button className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-8 py-3 rounded-full shadow transition text-base">
-              View all categories
-            </button>
-          </div>
         </div>
       </section>
       {/* Featured Projects */}
@@ -774,6 +875,15 @@ const Landing: React.FC = () => {
               </div>
             </div>
           ))}
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={() => navigate("/project")} // Change this to your route
+              className="bg-indigo-600 text-white font-semibold px-6 py-3 rounded-lg shadow hover:bg-indigo-700 transition text-lg"
+              aria-label="View more projects"
+            >
+              View More Projects
+            </button>
+          </div>
         </div>
       </section>
       {/* Why Choose Us?*/}
@@ -954,6 +1064,7 @@ const Landing: React.FC = () => {
             </p>
           </div>
         </div>
+        <RequestCustomProjectModal />
       </section>
 
       {/* Contact Section */}
@@ -977,13 +1088,16 @@ const Landing: React.FC = () => {
               <h3 className="text-2xl font-bold mb-7 text-black">
                 Get In Touch
               </h3>
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleContactSubmit}>
                 <div>
                   <label className="block text-sm font-medium mb-1 text-black">
                     Name
                   </label>
                   <input
                     type="text"
+                    name="name"
+                    value={contactForm.name}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="Your Name"
                     required
@@ -995,6 +1109,9 @@ const Landing: React.FC = () => {
                   </label>
                   <input
                     type="email"
+                    name="email"
+                    value={contactForm.email}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="you@example.com"
                     required
@@ -1006,6 +1123,9 @@ const Landing: React.FC = () => {
                   </label>
                   <input
                     type="tel"
+                    name="phone"
+                    value={contactForm.phone}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="+91 9XXXXXXXXX"
                   />
@@ -1015,7 +1135,10 @@ const Landing: React.FC = () => {
                     Project Details
                   </label>
                   <textarea
+                    name="details"
                     rows={4}
+                    value={contactForm.details}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="Describe your project or message..."
                     required
@@ -1023,10 +1146,21 @@ const Landing: React.FC = () => {
                 </div>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow transition"
                 >
-                  Send Message
+                  {loading ? "Sending..." : "Send Message"}
                 </button>
+                {successMsg && (
+                  <div className="text-green-600 font-semibold mt-2">
+                    {successMsg}
+                  </div>
+                )}
+                {errorMsg && (
+                  <div className="text-red-500 font-semibold mt-2">
+                    {errorMsg}
+                  </div>
+                )}
               </form>
             </div>
 

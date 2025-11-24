@@ -9,13 +9,20 @@ import {
   FaSave,
   FaHome,
   FaCode,
+  FaPaperPlane,
 } from "react-icons/fa";
 import projectsData from "../data/projects.json";
-import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { app } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png"; // Make sure you have your CodeForYou logo in src/assets
+import logo from "../assets/logo.png";
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -32,15 +39,23 @@ const ProfilePage: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [busyProjects, setBusyProjects] = useState<any[]>([]);
+  const [requestLoading, setRequestLoading] = useState(false);
+
   const navigate = useNavigate();
 
+  // Fetch user and wishlist from Firestore
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userRef = doc(db, "users", user.uid);
         const snap = await getDoc(userRef);
         if (snap.exists()) {
-          setUserData(snap.data());
+          const data = snap.data();
+          setUserData(data);
+          setWishlist(data.wishlist || []);
+          setBusyProjects(data.busyproject || []);
         } else {
           setUserData({
             name: user.displayName || "",
@@ -48,6 +63,8 @@ const ProfilePage: React.FC = () => {
             phone: "",
             createdAt: user.metadata.creationTime,
           });
+          setWishlist([]);
+          setBusyProjects([]);
         }
       } else {
         navigate("/signin");
@@ -71,12 +88,56 @@ const ProfilePage: React.FC = () => {
     });
     setEditMode(false);
   };
-  const [wishlist, setWishlist] = useState<string[]>([]);
+
+  // Wishlist handling (remove/add item then update in Firestore and UI)
+  const toggleWishlist = async (projectId: string) => {
+    if (!auth.currentUser) return;
+    let newWishlist;
+    if (wishlist.includes(projectId)) {
+      newWishlist = wishlist.filter((id) => id !== projectId);
+    } else {
+      newWishlist = [...wishlist, projectId];
+    }
+    setWishlist(newWishlist); // update UI immediately
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    await updateDoc(userRef, { wishlist: newWishlist });
+  };
+
+  // Request Project from wishlist (add to busyproject array in Firestore)
+  const handleRequestProject = async (projectId: string) => {
+    if (!auth.currentUser || !userData) return;
+    setRequestLoading(true);
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    const newRequest = {
+      name: userData.name,
+      mobile: userData.phone || "",
+      email: userData.email,
+      projectId,
+      requestedAt: new Date().toISOString(),
+    };
+    await updateDoc(userRef, {
+      busyproject: arrayUnion(newRequest),
+    });
+    // Locally update busyProjects array after request
+    setBusyProjects((prev) => [...prev, newRequest]);
+    setRequestLoading(false);
+    alert("Request sent and saved to your database!");
+  };
 
   const wishlistProjects = projectsData.filter((p) => wishlist.includes(p.id));
 
+  // Fetch project details for busyProjects requests
+  const busyProjectDetails = busyProjects.map((request) => {
+    const project = projectsData.find((p) => p.id === request.projectId);
+    return project
+      ? { ...request, ...project }
+      : { ...request, name: "Unknown Project" };
+  });
+
   if (loading)
-    return <div className="p-10 text-center">Loading profile...</div>;
+    return (
+      <div className="p-10 text-white text-center">Loading profile...</div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 relative">
@@ -90,22 +151,25 @@ const ProfilePage: React.FC = () => {
               &lt;CodeForYou/&gt;
             </span>
           </div>
-
           {/* Center - Title */}
           <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-gray-800">
             <FaCode className="text-black" />
             Profile Dashboard
           </h1>
-
           {/* Right - Buttons */}
           <div className="flex items-center gap-3">
             <button
+              onClick={() => navigate("/project")}
+              className="flex items-center font-semibold px-4 py-2"
+            >
+              Projects
+            </button>
+            <button
               onClick={() => navigate("/userdashboard")}
-              className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-black transition"
+              className="flex items-center gap-2 text-black px-4 py-2 rounded-md"
             >
               <FaHome /> Home
             </button>
-
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
@@ -125,7 +189,6 @@ const ProfilePage: React.FC = () => {
             <h2 className="text-xl font-semibold">{userData?.name}</h2>
             <p className="text-gray-500 text-sm">{userData?.email}</p>
           </div>
-
           <nav className="flex flex-col space-y-2">
             {tabs.map((tab) => (
               <button
@@ -154,6 +217,7 @@ const ProfilePage: React.FC = () => {
             🚀
           </div>
 
+          {/* Profile Info Tab */}
           {activeTab === "profile-info" && (
             <div>
               <div className="flex justify-between items-center mb-6">
@@ -174,7 +238,6 @@ const ProfilePage: React.FC = () => {
                   </button>
                 )}
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -195,7 +258,6 @@ const ProfilePage: React.FC = () => {
                     }`}
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Email
@@ -207,7 +269,6 @@ const ProfilePage: React.FC = () => {
                     className="w-full border px-4 py-2 rounded-md bg-gray-100"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Phone
@@ -227,7 +288,6 @@ const ProfilePage: React.FC = () => {
                     }`}
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Member Since
@@ -247,6 +307,7 @@ const ProfilePage: React.FC = () => {
             </div>
           )}
 
+          {/* Wishlist Tab */}
           {activeTab === "wishlist" && (
             <main>
               {wishlistProjects.length === 0 ? (
@@ -259,17 +320,36 @@ const ProfilePage: React.FC = () => {
                   {wishlistProjects.map((project) => (
                     <article
                       key={project.id}
-                      className="bg-white rounded-lg shadow p-4"
+                      className="bg-white rounded-lg shadow p-5 flex flex-col justify-between"
                     >
                       <img
                         src={project.imageURL}
                         alt={project.name}
                         className="rounded mb-3 h-40 w-full object-cover"
                       />
-                      <h3 className="text-lg font-semibold">{project.name}</h3>
-                      <p className="text-gray-600 text-sm">
+                      <h3 className="text-lg font-semibold mb-1">
+                        {project.name}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-2">
                         {project.description}
                       </p>
+                      <div className="flex gap-2 mt-auto">
+                        <button
+                          onClick={() => toggleWishlist(project.id)}
+                          className="flex items-center gap-2 text-red-600 hover:text-red-800 font-medium"
+                          aria-label={`Remove ${project.name} from wishlist`}
+                        >
+                          <FaHeart /> Remove
+                        </button>
+                        <button
+                          onClick={() => handleRequestProject(project.id)}
+                          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded transition font-medium ml-2"
+                          disabled={requestLoading}
+                        >
+                          <FaPaperPlane />
+                          Request Project
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -277,6 +357,7 @@ const ProfilePage: React.FC = () => {
             </main>
           )}
 
+          {/* Orders Tab (same as before) */}
           {activeTab === "orders" && (
             <div className="text-center text-gray-500 py-20">
               <FaBox className="text-5xl mx-auto mb-4 text-gray-400" />
@@ -284,11 +365,48 @@ const ProfilePage: React.FC = () => {
             </div>
           )}
 
+          {/* Requests Tab - show busyProjects */}
           {activeTab === "requests" && (
-            <div className="text-center text-gray-500 py-20">
-              <FaClipboardList className="text-5xl mx-auto mb-4 text-gray-400" />
-              <p>No requests or responses found.</p>
-            </div>
+            <main>
+              {busyProjectDetails.length === 0 ? (
+                <div className="text-center text-gray-500 py-20">
+                  <FaClipboardList className="text-5xl mx-auto mb-4 text-gray-400" />
+                  <p>No requests or responses found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-8">
+                  {busyProjectDetails.map((req, idx) => (
+                    <article
+                      key={req.projectId + "_" + idx}
+                      className="bg-white rounded-lg shadow p-5"
+                    >
+                      <h3 className="text-lg font-bold mb-2">{req.name}</h3>
+                      <p className="text-gray-700 text-sm mb-1">
+                        <b>Project ID:</b> {req.projectId}
+                      </p>
+                      <p className="text-gray-600 text-xs mb-1">
+                        <b>Requested At:</b>{" "}
+                        {req.requestedAt
+                          ? new Date(req.requestedAt).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                      <p className="text-gray-600 text-xs mb-1">
+                        <b>Name:</b> {req.name}
+                      </p>
+                      <p className="text-gray-600 text-xs mb-1">
+                        <b>Mobile:</b> {req.mobile}
+                      </p>
+                      <p className="text-gray-600 text-xs mb-1">
+                        <b>Email:</b> {req.email}
+                      </p>
+                      <p className="text-gray-600 text-xs mt-2">
+                        <b>Description:</b> {req.description || ""}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </main>
           )}
         </main>
       </div>

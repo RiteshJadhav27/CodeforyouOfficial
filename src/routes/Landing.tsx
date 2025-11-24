@@ -30,6 +30,14 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { HiCurrencyRupee } from "react-icons/hi";
+import {
+  getFirestore,
+  addDoc,
+  collection,
+  serverTimestamp,
+} from "firebase/firestore";
+import { app } from "../firebaseConfig";
+const db = getFirestore(app);
 
 import img1 from "../assets/car-rent-website-template.jpg";
 import img2 from "../assets/shipping-company-website-template.jpg";
@@ -40,6 +48,7 @@ import img6 from "../assets/bootstrap-restaurant-template.jpg";
 import img7 from "../assets/physical-therapy-website-template.jpg";
 import img8 from "../assets/life-insurance-website-template.jpg";
 import img9 from "../assets/Bussiness-templets.png";
+import RequestCustomProjectModal from "../components/RequestCustomProjectModal";
 
 const taglines = [
   "CodeForYou: Next-Gen Projects!",
@@ -214,11 +223,18 @@ const featuredProjects = [
 const Landing: React.FC = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [user, setUser] = useState({ name: "", email: "" });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const whatsappNumber = "+919075863917";
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const whatsappNumber = "+91 90758 63917";
+
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    details: "",
+  });
 
   // Hero section
   const [tagIndex, setTagIndex] = useState(0);
@@ -256,7 +272,6 @@ const Landing: React.FC = () => {
 
     useEffect(() => {
       let mounted = true;
-      let isPaused = false;
 
       async function runLoop() {
         const directionFactor = direction === "left" ? -1 : 1;
@@ -288,9 +303,6 @@ const Landing: React.FC = () => {
             opacity: 1,
             transition: { duration: 10 },
           });
-
-          // small pause between cycles if desired
-          // await new Promise((r) => setTimeout(r, 250));
         }
       }
 
@@ -345,35 +357,31 @@ const Landing: React.FC = () => {
   const handleHireClick = () => {
     navigate("/hire");
   };
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setUser({ name: "John Doe", email: "john@example.com" });
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser({ name: "", email: "" });
-    setShowProfile(false);
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSuccessMsg("");
+    setErrorMsg("");
+    try {
+      setLoading(true);
+      await addDoc(collection(db, "contactUs"), {
+        ...contactForm,
+        createdAt: serverTimestamp(),
+      });
+      setLoading(false);
+      setSuccessMsg("Message sent! We'll get back within 24 hours.");
+      setContactForm({ name: "", email: "", phone: "", details: "" });
+    } catch (error) {
+      setLoading(false);
+      setErrorMsg("Could not send your message. Please try again.");
+    }
   };
-  const handleHireUsClick = () => {
-    // Handle your Hire Us click if needed, or route to hire page
-    alert("Hire Us clicked");
-  };
-  const handleRequestProjectClick = () => {
-    setShowRequestModal(true);
-  };
-  const [cardDirection, setCardDirection] = useState("down");
-
-  const closeRequestModal = () => {
-    setShowRequestModal(false);
-  };
-
-  const handleHireTeamClick = () => {
-    // Handle Hire Developer Team click or navigation
-    alert("Hire Developer Team clicked");
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800">
       {/* Navbar */}
@@ -510,13 +518,13 @@ const Landing: React.FC = () => {
                 type="text"
                 placeholder="Find UI kits, projects, components..."
                 className="flex-1 w-full px-5 py-3 rounded-full border border-gray-300 bg-white 
-            focus:ring-2 focus:ring-blue-500 focus:outline-none text-base shadow-sm"
+               focus:ring-2 focus:ring-blue-500 focus:outline-none text-base shadow-sm"
               />
               <button
                 className="mt-4 sm:mt-0 px-7 py-3 rounded-full text-white font-bold 
-          bg-gradient-to-r from-blue-700 to-violet-600 
-          hover:from-violet-700 hover:to-blue-700 
-          shadow-lg transition flex items-center justify-center"
+           bg-gradient-to-r from-blue-700 to-violet-600 
+           hover:from-violet-700 hover:to-blue-700 
+           shadow-lg transition flex items-center justify-center"
               >
                 <FaSearch />
               </button>
@@ -541,25 +549,7 @@ const Landing: React.FC = () => {
           </div>
         </div>
 
-        {/* Buttons below search bar 
-        <div className="w-full flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 mb-2">
-          <button
-            className="px-8 py-3 bg-zinc-900 text-white font-semibold rounded-full shadow-md hover:bg-zinc-800 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 transition text-base sm:text-lg"
-            onClick={() => {
-              /* handleRequestCustom() 
-            }}
-          >
-            Request Custom Project
-          </button>
-          <button
-            className="px-8 py-3 bg-blue-700 text-white font-semibold rounded-full shadow-md hover:bg-blue-800 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-base sm:text-lg"
-            onClick={() => {
-              /* handlePartnerWithUs() 
-            }}
-          >
-            Partner With Us
-          </button>
-        </div>*/}
+        {/* Buttons below search bar */}
       </section>
 
       {/* Categories Section */}
@@ -615,14 +605,9 @@ const Landing: React.FC = () => {
               );
             })}
           </div>
-
-          <div className="flex justify-center mt-10">
-            <button className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-8 py-3 rounded-full shadow transition text-base">
-              View all categories
-            </button>
-          </div>
         </div>
       </section>
+
       {/* Featured Projects */}
       <section
         id="projects"
@@ -675,8 +660,18 @@ const Landing: React.FC = () => {
             </div>
           ))}
         </div>
+        <div className="flex justify-center mt-12">
+          <button
+            onClick={() => navigate("/project")}
+            className="bg-indigo-600 text-white font-semibold px-6 py-3 rounded-lg shadow hover:bg-indigo-700 transition text-lg"
+            aria-label="View more projects"
+          >
+            View More Projects
+          </button>
+        </div>
       </section>
-      {/* Why Choose Us?*/}
+
+      {/* Why Choose Us? */}
       <section
         id="services"
         className="py-10 px-6 md:px-12 bg-gray-100 text-gray-500"
@@ -694,18 +689,20 @@ const Landing: React.FC = () => {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 max-w-7xl mx-auto mt-10">
           {/* Fast Delivery */}
-          <div className="flex flex-col items-center text-center rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className="flex flex-col items-center text-center">
             <div className="p-5 bg-indigo-100 rounded-full mb-4 text-indigo-600">
               <FaRocket size={40} />
             </div>
-            <h4 className="text-lg font-semibold mb-2">Fast Delivery</h4>
+            <h4 className="text-lg text-black font-semibold mb-2">
+              Fast Delivery
+            </h4>
             <p className="text-gray-600 text-sm">
               Rapid project completion without sacrificing quality.
             </p>
           </div>
 
           {/* Professional Work */}
-          <div className="flex flex-col items-center text-center rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className="flex flex-col items-center text-center">
             <div className="p-5 bg-green-100 rounded-full mb-4 text-green-600">
               <FaLightbulb size={40} />
             </div>
@@ -718,7 +715,7 @@ const Landing: React.FC = () => {
           </div>
 
           {/* Secure & Reliable */}
-          <div className="flex flex-col items-center text-center rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className="flex flex-col items-center text-center">
             <div className="p-5 bg-blue-100 rounded-full mb-4 text-blue-600">
               <FaLock size={40} />
             </div>
@@ -731,7 +728,7 @@ const Landing: React.FC = () => {
           </div>
 
           {/* Affordable Pricing */}
-          <div className="flex flex-col items-center text-center rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className="flex flex-col items-center text-center">
             <div className="p-5 bg-green-100 rounded-full mb-4 text-green-600">
               <HiCurrencyRupee size={40} />
             </div>
@@ -744,7 +741,7 @@ const Landing: React.FC = () => {
           </div>
 
           {/* Dedicated Support */}
-          <div className="flex flex-col items-center text-center rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className="flex flex-col items-center text-center">
             <div className="p-5 bg-yellow-100 rounded-full mb-4 text-yellow-600">
               <FaUsers size={40} />
             </div>
@@ -763,13 +760,11 @@ const Landing: React.FC = () => {
         <h2 className="text-4xl font-extrabold text-center mb-6 text-gray-900 dark:text-black">
           Our Services
         </h2>
-
         <p className="text-center max-w-3xl mx-auto text-gray-700 dark:text-black mb-14">
           At <span className="font-semibold">CodeForYou</span>, we build modern,
           scalable, and high-quality digital solutions for students, startups,
           and businesses. Crafted with perfection, delivered with excellence.
         </p>
-
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {/* Website Development */}
           <div className="group rounded-lg shadow-md bg-white border border-gray-300 hover:shadow-lg p-8 rounded-3xl transition">
@@ -854,6 +849,7 @@ const Landing: React.FC = () => {
             </p>
           </div>
         </div>
+        <RequestCustomProjectModal />
       </section>
 
       {/* Contact Section */}
@@ -877,13 +873,16 @@ const Landing: React.FC = () => {
               <h3 className="text-2xl font-bold mb-7 text-black">
                 Get In Touch
               </h3>
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleContactSubmit}>
                 <div>
                   <label className="block text-sm font-medium mb-1 text-black">
                     Name
                   </label>
                   <input
                     type="text"
+                    name="name"
+                    value={contactForm.name}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="Your Name"
                     required
@@ -895,6 +894,9 @@ const Landing: React.FC = () => {
                   </label>
                   <input
                     type="email"
+                    name="email"
+                    value={contactForm.email}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="you@example.com"
                     required
@@ -906,16 +908,23 @@ const Landing: React.FC = () => {
                   </label>
                   <input
                     type="tel"
+                    name="phone"
+                    value={contactForm.phone}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="+91 9XXXXXXXXX"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1 text-black">
                     Project Details
                   </label>
                   <textarea
+                    name="details"
                     rows={4}
+                    value={contactForm.details}
+                    onChange={handleFormChange}
                     className="w-full border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white transition"
                     placeholder="Describe your project or message..."
                     required
@@ -923,10 +932,21 @@ const Landing: React.FC = () => {
                 </div>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow transition"
                 >
-                  Send Message
+                  {loading ? "Sending..." : "Send Message"}
                 </button>
+                {successMsg && (
+                  <div className="text-green-600 font-semibold mt-2">
+                    {successMsg}
+                  </div>
+                )}
+                {errorMsg && (
+                  <div className="text-red-500 font-semibold mt-2">
+                    {errorMsg}
+                  </div>
+                )}
               </form>
             </div>
 

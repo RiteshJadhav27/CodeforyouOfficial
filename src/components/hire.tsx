@@ -11,8 +11,9 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { app } from "../firebaseConfig";
-import { FaUserCircle, FaSignOutAlt, FaEdit } from "react-icons/fa";
+import { FaUserCircle, FaSignOutAlt, FaUser } from "react-icons/fa";
 import Swal from "sweetalert2";
+import RequestCustomProjectModal from "./RequestCustomProjectModal";
 
 // Firebase setup
 const auth = getAuth(app);
@@ -37,12 +38,6 @@ const hireOptions = [
     description:
       "Looking for skilled React, Tailwind, or AI developers? Hire our experts for short or long-term contracts.",
   },
-  {
-    id: "consultation",
-    title: "Book a Consultation",
-    description:
-      "Need guidance with performance, architecture, or strategy? Schedule a consultation with our experts.",
-  },
 ];
 
 const HirePage = () => {
@@ -64,6 +59,10 @@ const HirePage = () => {
     timeline: "",
     status: "pending",
   });
+
+  const openProfile = () => {
+    navigate("/profile"); // Adjust as needed for your routing
+  };
 
   const currentOption = hireOptions.find((opt) => opt.id === selected);
 
@@ -123,9 +122,6 @@ const HirePage = () => {
   const handleBackHome = () => {
     navigate(user ? "/userdashboard" : "/");
   };
-
-  const toggleProfileMenu = () => setProfileOpen(!profileOpen);
-  const toggleEditMode = () => setEditMode(!editMode);
 
   // Input change handler
   const handleChange = (
@@ -215,72 +211,59 @@ const HirePage = () => {
             </button>
 
             {user ? (
-              <div className="relative">
+              <div className="relative" tabIndex={0}>
                 <button
-                  onClick={toggleProfileMenu}
-                  className="flex items-center gap-2 text-gray-700 hover:text-black"
+                  onClick={() => setProfileOpen((prev) => !prev)}
+                  className="flex items-center gap-3 text-gray-700 hover:text-black font-semibold focus:outline-none rounded-lg px-4 py-2"
+                  aria-haspopup="true"
+                  aria-expanded={profileOpen}
                 >
-                  <FaUserCircle size={26} />
-                  <span className="hidden sm:inline">Hi, {user.name}</span>
+                  <FaUserCircle size={28} className="text-gray-600" />
+                  <span className="hidden sm:inline">
+                    Welcome, {user?.name || ""}!
+                  </span>
+                  <svg
+                    className={`w-5 h-5 ml-1 transition-transform duration-200 ${
+                      profileOpen ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-sm z-50">
-                    {!editMode ? (
-                      <>
-                        <div className="mb-2">
-                          <strong>Name:</strong> {user.name}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Email:</strong> {user.email}
-                        </div>
-                        <div className="flex flex-col gap-2 mt-3">
-                          <button
-                            onClick={() => setEditMode(true)}
-                            className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex justify-center items-center"
-                          >
-                            <FaEdit className="mr-2" /> Edit Profile
-                          </button>
-                          <button
-                            onClick={handleLogout}
-                            className="bg-red-600 text-white py-2 rounded hover:bg-red-700 flex justify-center items-center"
-                          >
-                            <FaSignOutAlt className="mr-2" /> Logout
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <form className="space-y-3 text-sm">
-                        <input
-                          type="text"
-                          value={user.name}
-                          onChange={() => {}}
-                          className="w-full border rounded px-2 py-1"
-                        />
-                        <input
-                          type="email"
-                          value={user.email}
-                          onChange={() => {}}
-                          className="w-full border rounded px-2 py-1"
-                        />
-                        <div className="flex justify-between">
-                          <button
-                            type="button"
-                            onClick={() => setEditMode(false)}
-                            className="bg-gray-300 rounded px-3 py-1"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditMode(false)}
-                            className="bg-blue-600 text-white rounded px-3 py-1"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </form>
-                    )}
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-300 rounded-xl shadow-lg text-gray-900 z-50 p-3">
+                    <button
+                      onClick={() => {
+                        openProfile();
+                        setProfileOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 font-medium flex items-center gap-2"
+                    >
+                      <FaUser />
+                      Profile
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setProfileOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 font-medium text-red-600 flex items-center gap-2"
+                    >
+                      <FaSignOutAlt />
+                      Logout
+                    </button>
                   </div>
                 )}
               </div>
@@ -314,6 +297,7 @@ const HirePage = () => {
             Partner with CodeForYou for innovative web development solutions
             tailored to your needs.
           </p>
+          <RequestCustomProjectModal />
         </div>
       </section>
 

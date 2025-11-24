@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   FaSearch,
+  FaUser,
   FaUserCircle,
   FaSignOutAlt,
-  FaEdit,
   FaHeart,
   FaRegHeart,
   FaShoppingCart,
@@ -27,7 +27,7 @@ import {
 } from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import projectsData from "../data/projects.json";
-
+import RequestCustomProjectModal from "./RequestCustomProjectModal";
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -38,8 +38,7 @@ export default function ProjectsPage() {
     email: string;
     uid?: string;
   } | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [setEditMode] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -49,6 +48,10 @@ export default function ProjectsPage() {
     phone: "",
     message: "",
   });
+  const [profileOpen, setProfileOpen] = useState(false);
+  const openProfile = () => {
+    navigate("/profile"); // Adjust as needed for your routing
+  };
   const [requestSuccess, setRequestSuccess] = useState(false);
 
   const navigate = useNavigate();
@@ -94,7 +97,6 @@ export default function ProjectsPage() {
         !profileRef.current.contains(event.target as Node)
       ) {
         setProfileOpen(false);
-        setEditMode(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -252,7 +254,7 @@ export default function ProjectsPage() {
               <FaSearch className="absolute left-3 top-2.5 text-gray-500" />
             </div>
           </div>
-          <nav className="flex items-center gap-4 mt-3 md:mt-0">
+          <nav className="flex items-center gap-10 mt-3 md:mt-0">
             <button
               onClick={handleHomeClick}
               className="text-gray-700 hover:text-black font-medium"
@@ -275,85 +277,59 @@ export default function ProjectsPage() {
                 </Link>
               </>
             ) : (
-              <div ref={profileRef} className="relative">
+              <div className="relative" tabIndex={0}>
                 <button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-black font-medium focus:outline-none"
+                  onClick={() => setProfileOpen((prev) => !prev)}
+                  className="flex items-center gap-3 text-gray-700 hover:text-black font-semibold focus:outline-none rounded-lg px-4 py-2"
                   aria-haspopup="true"
                   aria-expanded={profileOpen}
                 >
-                  <FaUserCircle size={28} />
-                  <span className="hidden md:inline">Welcome, {user.name}</span>
+                  <FaUserCircle size={28} className="text-gray-600" />
+                  <span className="hidden sm:inline">
+                    Welcome, {user?.name || ""}!
+                  </span>
+                  <svg
+                    className={`w-5 h-5 ml-1 transition-transform duration-200 ${
+                      profileOpen ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
+
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
-                    {!editMode ? (
-                      <>
-                        <div className="mb-2">
-                          <strong>Name:</strong> {user.name}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Email:</strong> {user.email}
-                        </div>
-                        <div className="flex flex-col gap-2 mt-3">
-                          <button
-                            onClick={() => setEditMode(true)}
-                            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition flex items-center justify-center"
-                          >
-                            <FaEdit className="mr-2" /> Edit Profile
-                          </button>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition flex items-center justify-center"
-                          >
-                            <FaSignOutAlt className="mr-2" /> Logout
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <form className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Name
-                          </label>
-                          <input
-                            type="text"
-                            value={user.name}
-                            readOnly
-                            className="w-full border border-gray-300 rounded px-3 py-2 cursor-not-allowed bg-gray-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            value={user.email}
-                            readOnly
-                            className="w-full border border-gray-300 rounded px-3 py-2 cursor-not-allowed bg-gray-100"
-                          />
-                        </div>
-                        <div className="flex justify-between">
-                          <button
-                            type="button"
-                            onClick={() => setEditMode(false)}
-                            className="bg-gray-300 rounded px-4 py-2"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditMode(false)}
-                            disabled
-                            className="bg-blue-600 text-white rounded px-4 py-2 opacity-50 cursor-not-allowed"
-                            title="Save currently disabled"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </form>
-                    )}
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-300 rounded-xl shadow-lg text-gray-900 z-50 p-3">
+                    <button
+                      onClick={() => {
+                        openProfile();
+                        setProfileOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 font-medium flex items-center gap-2"
+                    >
+                      <FaUser />
+                      Profile
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setProfileOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 font-medium text-red-600 flex items-center gap-2"
+                    >
+                      <FaSignOutAlt />
+                      Logout
+                    </button>
                   </div>
                 )}
               </div>
@@ -380,6 +356,7 @@ export default function ProjectsPage() {
             Explore, learn, and get inspired!
           </p>
         </div>
+        <RequestCustomProjectModal />
       </section>
 
       {/* Projects Grid */}
@@ -432,9 +409,9 @@ export default function ProjectsPage() {
                       className="text-red-500 hover:text-red-600 transition"
                     >
                       {wishlist.includes(project.id) ? (
-                        <FaHeart />
+                        <FaHeart size={25} />
                       ) : (
-                        <FaRegHeart />
+                        <FaRegHeart size={20} />
                       )}
                     </button>
                     <button
@@ -582,7 +559,24 @@ export default function ProjectsPage() {
                   <div className="bg-white border rounded-lg shadow-sm p-6">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-xl font-semibold">Regular License</h3>
-                      <FaRegHeart className="text-gray-500 text-xl cursor-pointer" />
+                      <button
+                        aria-label={
+                          wishlist.includes(selectedProject.id)
+                            ? `Remove ${selectedProject.name} from wishlist`
+                            : `Add ${selectedProject.name} to wishlist`
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent modal close or other click events
+                          toggleWishlist(selectedProject.id);
+                        }}
+                        className={`text-red-500 hover:text-red-600 transition`}
+                      >
+                        {wishlist.includes(selectedProject.id) ? (
+                          <FaHeart size={25} />
+                        ) : (
+                          <FaRegHeart size={20} />
+                        )}
+                      </button>
                     </div>
                     <p className="text-3xl font-bold text-gray-900">
                       ₹{selectedProject.price || "—"}

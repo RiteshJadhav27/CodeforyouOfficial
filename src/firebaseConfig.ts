@@ -9,7 +9,7 @@ const firebaseConfig = {
   storageBucket: "codeforyou-official.firebasestorage.app",
   messagingSenderId: "937573757023",
   appId: "1:937573757023:web:827d75d22f6af1981a6bea",
-  measurementId: "G-9BNYCQFJ28"
+  measurementId: "G-9BNYCQFJ28",
 };
 
 export const app = initializeApp(firebaseConfig);
