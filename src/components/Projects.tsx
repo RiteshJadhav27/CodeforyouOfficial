@@ -578,8 +578,13 @@ export default function ProjectsPage() {
                         )}
                       </button>
                     </div>
-                    <p className="text-3xl font-bold text-gray-900">
-                      ₹{selectedProject.price || "—"}
+                    <p className="text-3xl font-bold text-gray-900 flex items-baseline gap-2">
+                      <span className="text-xl text-gray-400 line-through">
+                        ₹{selectedProject.price}
+                      </span>
+                      <span>
+                        ₹{selectedProject.offerPrice ?? selectedProject.price}
+                      </span>
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       Quality checked by CodeForYou
